@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantalla de Configuración</title>
+  <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <div class="settings-container">
+    <h1 class="settings-title">Configuración</h1>
+
+    <!-- Control de Volumen -->
+    <div class="setting-item">
+      <label for="volume" class="setting-label">Volumen General</label>
+      <div class="slider-container">
+        <input type="range" id="volume" min="0" max="100" value="50" class="slider" oninput="updateSliderValue('volume-value', this.value)">
+        <span id="volume-value" class="slider-value">50%</span>
+      </div>
+    </div>
+
+    <!-- Control de Música -->
+    <div class="setting-item">
+      <label for="music" class="setting-label">Volumen de Música</label>
+      <div class="slider-container">
+        <input type="range" id="music" min="0" max="100" value="70" class="slider" oninput="updateSliderValue('music-value', this.value)">
+        <span id="music-value" class="slider-value">70%</span>
+      </div>
+    </div>
+
+    <!-- Control de Brillo -->
+    <div class="setting-item">
+      <label for="brightness" class="setting-label">Brillo</label>
+      <div class="slider-container">
+        <input type="range" id="brightness" min="0" max="100" value="50" class="slider" oninput="updateSliderValue('brightness-value', this.value)">
+        <span id="brightness-value" class="slider-value">50%</span>
+      </div>
+    </div>
+
+    
+    <!-- Modo Daltónico -->
+    <div class="setting-item">
+      <label for="color-mode" class="setting-label">Modo Daltónico</label>
+      <input type="checkbox" id="color-mode">
+    </div>
+
+    <!-- Botón para guardar -->
+    <div class="setting-item">
+      <button class="save-button" onclick="saveSettings()">Guardar Configuración</button>
+    </div>
+  </div>
+
+  <script src="Configuracion.js"></script>
+</body>
+</html>

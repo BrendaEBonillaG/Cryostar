@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seleccionar Dificultad</title>
+  <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <div class="difficulty-container">
+    <h1 class="difficulty-title">Selecciona la Dificultad</h1>
+    <div class="difficulty-buttons">
+      <button class="difficulty-btn easy" onclick="selectDifficulty('Fácil')">Fácil</button>
+      <button class="difficulty-btn normal" onclick="selectDifficulty('Normal')">Normal</button>
+      <button class="difficulty-btn hard" onclick="selectDifficulty('Difícil')">Difícil</button>
+    </div>
+  </div>
+
+  <script>
+    function selectDifficulty(level) {
+      alert(`¡Has seleccionado la dificultad: ${level}!`);
+      // Aquí puedes redirigir o establecer la configuración del nivel de dificultad
+      // Ejemplo: window.location.href = `${level.toLowerCase()}.html`;
+    }
+  </script>
+</body>
+</html>

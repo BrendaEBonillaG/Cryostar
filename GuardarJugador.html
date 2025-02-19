@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puntuaciones</title>
+  <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <div class="scoreboard-container">
+    <h1 class="scoreboard-title">Guarda tu puntaje</h1>
+    <div class="score-list">
+      <ul id="scoreList">
+        <!-- Aquí se llenarán las puntuaciones dinámicamente -->
+      </ul>
+    </div>
+    <div class="player-score">
+      <label for="playerName">Tu nombre: </label>
+      <input type="text" id="playerName" placeholder="Ingresa tu nombre">
+      <button onclick="saveScore()">Guardar Puntuación</button>
+    </div>
+  </div>
+
+  <script src="scores_save.js"></script>
+</body>
+</html>

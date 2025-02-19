@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stars and 3D Model</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body style="margin: 0; overflow: hidden;">
+    <!-- Canvas para el fondo de estrellas -->
+    <canvas id="spaceCanvas"></canvas>
+    
+    <!-- Canvas para el modelo 3D -->
+    <canvas id="modelCanvas" style="position: absolute; top: 0; left: 0;"></canvas>
+
+    <script src="main.js"></script>
+    
+</body>
+</html>
