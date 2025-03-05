@@ -315,3 +315,7 @@ body {
   .back-button:active {
     background-color: #ff2222;
   }
+
+  .share-button{
+    background-color: #3822ff;
+  }
