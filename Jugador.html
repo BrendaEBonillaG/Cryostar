@@ -4,28 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seleccionar Modo de Juego</title>
-  <link rel="stylesheet" href="menu.css">
+  <link rel="stylesheet" href="jugador.css">
 </head>
 <body>
+  <div class="background-animation"></div>
   <div class="game-mode-container">
     <h1 class="game-mode-title">Selecciona tu Modo de Juego</h1>
     <div class="game-mode-buttons">
-      <button class="mode-btn" onclick="startSinglePlayer()">Un Jugador</button>
-      <button class="mode-btn" onclick="startMultiplayer()">Multijugador</button>
+      <button class="mode-btn single-player" onclick="startSinglePlayer()">Un Jugador</button>
+      <button class="mode-btn multiplayer" onclick="startMultiplayer()">Multijugador</button>
     </div>
   </div>
 
   <script>
     function startSinglePlayer() {
-      alert("¡Modo Un Jugador seleccionado!");
-      // Aquí puedes redirigir a la pantalla del juego o inicializar el modo de un jugador
-       window.location.href = 'Dificultad.html';
+      window.location.href = 'Dificultad.html';
     }
 
     function startMultiplayer() {
-      alert("¡Modo Multijugador seleccionado!");
-      // Aquí puedes redirigir a la pantalla del juego o inicializar el modo multijugador
-      // Por ejemplo: window.location.href = 'multiplayer.html';
+      window.location.href = 'multiplayer.html';
     }
   </script>
 </body>
