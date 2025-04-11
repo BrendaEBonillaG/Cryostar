@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
             overflow: hidden;
             background-color: #000;
         }
-        
+
         #ui {
             position: absolute;
             top: 10px;
@@ -19,6 +20,7 @@
             font-family: Arial, sans-serif;
             pointer-events: none;
         }
+
         .loading {
             position: absolute;
             top: 50%;
@@ -30,33 +32,35 @@
         }
     </style>
 </head>
+
 <body>
     <div id="game-container"></div>
-    
+
     <div class="loading">Cargando nave espacial...</div>
 
     <!-- Three.js y GLTFLoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
-    
+
     <script>
         // Variables del juego
         let scene, camera, renderer;
-        let nave, meteoritos = [];
+        let nave, alien, alien2, meteoritos = [];
         let score = 0;
         let lives = 3;
         let gameOver = false;
         let meteoritoSpeed = 0.05;
         let spawnInterval = 2000; // ms
+        let alienVelocities = [0.05, 0.05];
         let lastSpawnTime = 0;
         let loader = new THREE.GLTFLoader();
-        
+
         // Inicializar el juego
         function initGame() {
             // Escena
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x000020);
-            
+
             // Cámara en vista superior (ortográfica)
             const aspect = window.innerWidth / window.innerHeight;
             const viewSize = 15;
@@ -71,36 +75,36 @@
             camera.position.set(0, 20, 0);
             camera.lookAt(0, 0, 0);
             camera.rotation.x = -Math.PI / 2; // Mira directamente hacia abajo
-            
+
             // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.getElementById('game-container').appendChild(renderer.domElement);
-            
+
             // Luces
             const light = new THREE.DirectionalLight(0xffffff, 1);
             light.position.set(0, 10, 0);
             scene.add(light);
-            
+
             const ambientLight = new THREE.AmbientLight(0x404040);
             scene.add(ambientLight);
-            
+
             // Cuadrícula para referencia (opcional)
             const gridHelper = new THREE.GridHelper(20, 20, 0x555555, 0x333333);
             scene.add(gridHelper);
-            
+
             // Cargar modelos
             cargarNave();
-            
+
             // Eventos
             window.addEventListener('resize', onWindowResize);
             window.addEventListener('keydown', onKeyDown);
         }
-        
+
         // ===== CARGAR NAVE =====
         function cargarNave() {
             loader.load(
-                'Nave_03.glb',
+                '../nivel1/Nave_03.glb',
                 function (gltf) {
                     nave = gltf.scene;
                     // Ajustes para vista superior
@@ -109,6 +113,7 @@
                     nave.position.set(0, 0, 0);
                     nave.scale.set(0.5, 0.5, 0.5);
                     scene.add(nave);
+                     spawnAlien();
                     document.querySelector('.loading').style.display = 'none';
                     iniciarJuego();
                 },
@@ -119,11 +124,58 @@
                 }
             );
         }
-        
+
+
+         // ===== CARGAR ALIEN =====
+        function cargarAlien() {
+            loader.load(
+                '../nivel2/alien.glb',
+                function (gltf) {
+                    alien = gltf.scene;
+                    alien.rotation.y = Math.PI; // Girarlo para que mire hacia la cámara si es necesario
+
+                    // Cambiar posición más abajo a la derecha
+                    alien.position.set(8, 2, 5); // x a los lados, y altura, z abajo
+
+                    // Hacerlo más pequeño
+                    alien.scale.set(0.2, 0.2, 0.2); // Reducir tamaño
+
+                    scene.add(alien);
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar el alien:', error);
+                }
+            );
+        }
+
+        function cargarAlien2() {
+            loader.load(
+                'alien2.glb',
+                function (gltf) {
+                    alien2 = gltf.scene;
+                    alien2.rotation.y = Math.PI; // Girarlo para que mire hacia la cámara si es necesario
+
+                    // Cambiar posición más abajo a la derecha
+                    alien2.position.set(-8, 2, 3); // x a los lados, y altura, z abajo
+
+                    // Hacerlo más pequeño
+                    alien2.scale.set(0.02, 0.02, 0.02); // Reducir tamaño
+
+                    scene.add(alien2);
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar el alien:', error);
+                }
+            );
+        }
+
+
         // ===== CARGAR METEORITO =====
         function cargarMeteorito() {
             loader.load(
-                'meteorito1.glb',
+                '../nivel1/meteorito1.glb',
                 function (gltf) {
                     const meteorito = gltf.scene;
                     
@@ -159,29 +211,114 @@
             );
         }
         
+        function cargarMeteorito2() {
+            loader.load(
+                '../nivel2/meteorito2.glb',
+                function (gltf) {
+                    const meteorito = gltf.scene;
 
-          
+                    // Posición aleatoria en los bordes
+                    let x, z;
+                    if (Math.random() > 0.5) {
+                        x = (Math.random() - 0.5) * 20;
+                        z = Math.random() > 0.5 ? 10 : -10;
+                    } else {
+                        x = Math.random() > 0.5 ? 10 : -10;
+                        z = (Math.random() - 0.5) * 20;
+                    }
+
+                    meteorito.position.set(x, 0, z);
+
+                    // Escala aleatoria
+                    const scale = 0.5 + Math.random() * 0.4;
+                    meteorito.scale.set(scale, scale, scale);
+
+                    // Dirección hacia el centro (nave)
+                    meteorito.userData = {
+                        speed: meteoritoSpeed + Math.random() * 0.03,
+                        direction: new THREE.Vector3(-x, 0, -z).normalize()
+                    };
+
+                    scene.add(meteorito);
+                    meteoritos.push(meteorito);
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar meteorito:', error);
+                }
+            );
+        }
+
+
+        function cargarMeteorito3() {
+            loader.load(
+                '../nivel2/meteorito3.glb',
+                function (gltf) {
+                    const meteorito = gltf.scene;
+
+                    // Posición de aparición más aleatoria
+                    const x = (Math.random() - 0.5) * 30;
+                    const z = (Math.random() - 0.5) * 30;
+
+                    meteorito.position.set(x, 0, z);
+
+                    // Escala más grande o más variada
+                    const scale = 0.4 + Math.random() * 0.6;
+                    meteorito.scale.set(scale, scale, scale);
+
+                    // Movimiento en espiral hacia el centro (como comportamiento distinto)
+                    const angle = Math.random() * Math.PI * 2;
+                    meteorito.userData = {
+                        speed: meteoritoSpeed + 0.01 + Math.random() * 0.02,
+                        angle,
+                        spiral: true,
+                        radius: Math.sqrt(x * x + z * z),
+                        centerDirection: new THREE.Vector3(-x, 0, -z).normalize()
+                    };
+
+                    scene.add(meteorito);
+                    meteoritos.push(meteorito);
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar meteorito3:', error);
+                }
+            );
+        }
+
+
+
 
 
         function iniciarJuego() {
             // Iniciar bucle del juego
             animate();
+           
         }
-        
+
         // Crear un nuevo meteorito
         function spawnMeteorito() {
             cargarMeteorito();
+            cargarMeteorito2();
+            cargarMeteorito3();
+
         }
-        
+        function spawnAlien() {
+            // Crear un nuevo alien (puedes ajustar la lógica de aparición aquí)
+          cargarAlien();
+          cargarAlien2();
+        }
+     
+
         // Actualizar el juego
         function updateGame(currentTime) {
             if (gameOver) return;
-            
+
             // Generar nuevos meteoritos
             if (currentTime - lastSpawnTime > spawnInterval) {
                 spawnMeteorito();
                 lastSpawnTime = currentTime;
-                
+
                 // Aumentar dificultad
                 if (spawnInterval > 800) {
                     spawnInterval -= 50;
@@ -190,44 +327,57 @@
                     meteoritoSpeed += 0.002;
                 }
             }
-            
+
             // Mover meteoritos hacia la nave
             for (let i = meteoritos.length - 1; i >= 0; i--) {
                 const meteorito = meteoritos[i];
-                const dir = meteorito.userData.direction;
-                
-                meteorito.position.x += dir.x * meteorito.userData.speed;
-                meteorito.position.z += dir.z * meteorito.userData.speed;
-                
+
+                // Si tiene movimiento en espiral
+                if (meteorito.userData.spiral) {
+                    meteorito.userData.angle += 0.05;
+                    meteorito.userData.radius -= 0.05;
+
+                    const x = Math.cos(meteorito.userData.angle) * meteorito.userData.radius;
+                    const z = Math.sin(meteorito.userData.angle) * meteorito.userData.radius;
+
+                    meteorito.position.set(x, 0, z);
+                } else {
+                    // Movimiento normal hacia el centro
+                    const dir = meteorito.userData.direction;
+                    meteorito.position.x += dir.x * meteorito.userData.speed;
+                    meteorito.position.z += dir.z * meteorito.userData.speed;
+                }
+
                 // Rotar meteorito
                 meteorito.rotation.x += 0.01;
                 meteorito.rotation.z += 0.01;
-                
+
                 // Detectar colisiones
                 const distance = Math.sqrt(
-                    Math.pow(meteorito.position.x - nave.position.x, 2) + 
+                    Math.pow(meteorito.position.x - nave.position.x, 2) +
                     Math.pow(meteorito.position.z - nave.position.z, 2)
                 );
-                
+
                 if (distance < 1.0) {
                     // Colisión detectada
                     scene.remove(meteorito);
                     meteoritos.splice(i, 1);
                     lives--;
                     document.getElementById('lives').textContent = lives;
-                    
+
                     if (lives <= 0) {
                         gameOver = true;
                         alert('¡Juego terminado! Puntuación: ' + score);
                     }
+                    continue;
                 }
-                
+
                 // Eliminar meteoritos que pasaron el centro
                 const centerDistance = Math.sqrt(
-                    Math.pow(meteorito.position.x, 2) + 
+                    Math.pow(meteorito.position.x, 2) +
                     Math.pow(meteorito.position.z, 2)
                 );
-                
+
                 if (centerDistance < 0.5) {
                     scene.remove(meteorito);
                     meteoritos.splice(i, 1);
@@ -236,15 +386,16 @@
                 }
             }
         }
-        
+
+
         // Controlar la nave con teclado
         function onKeyDown(event) {
             if (gameOver) return;
-            
+
             const moveSpeed = 0.3;
             const moveLimit = 8; // Límite de movimiento
-            
-            switch(event.key) {
+
+            switch (event.key) {
                 case 'ArrowLeft':
                     if (nave.position.x > -moveLimit) nave.position.x -= moveSpeed;
                     break;
@@ -259,30 +410,31 @@
                     break;
             }
         }
-        
+
         // Redimensionar
         function onWindowResize() {
             const aspect = window.innerWidth / window.innerHeight;
             const viewSize = 15;
-            
+
             camera.left = -viewSize * aspect / 2;
             camera.right = viewSize * aspect / 2;
             camera.top = viewSize / 2;
             camera.bottom = -viewSize / 2;
             camera.updateProjectionMatrix();
-            
+
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
-        
+
         // Bucle de animación
         function animate(currentTime = 0) {
             requestAnimationFrame(animate);
             updateGame(currentTime);
             renderer.render(scene, camera);
         }
-        
+
         // Iniciar el juego cuando se cargue la página
         window.onload = initGame;
     </script>
 </body>
+
 </html>
