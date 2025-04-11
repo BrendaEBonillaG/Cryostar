@@ -45,7 +45,7 @@
     <script>
         // Variables del juego
         let scene, camera, renderer;
-        let nave, alien, meteoritos = [];
+        let nave, alien, alien2, meteoritos = [];
         let score = 0;
         let lives = 3;
         let gameOver = false;
@@ -112,8 +112,7 @@
                     nave.position.set(0, 0, 0);
                     nave.scale.set(0.5, 0.5, 0.5);
                     scene.add(nave);
-
-                    cargarAlien(); // Cargar el alien después de la nave
+                     spawnAlien();
                     document.querySelector('.loading').style.display = 'none';
                     iniciarJuego();
                 },
@@ -129,7 +128,7 @@
          // ===== CARGAR ALIEN =====
         function cargarAlien() {
             loader.load(
-                'alien.glb',
+                '../nivel2/alien.glb',
                 function (gltf) {
                     alien = gltf.scene;
                     alien.rotation.y = Math.PI; // Girarlo para que mire hacia la cámara si es necesario
@@ -149,11 +148,71 @@
             );
         }
 
+        function cargarAlien2() {
+            loader.load(
+                'alien2.glb',
+                function (gltf) {
+                    alien2 = gltf.scene;
+                    alien2.rotation.y = Math.PI; // Girarlo para que mire hacia la cámara si es necesario
+
+                    // Cambiar posición más abajo a la derecha
+                    alien2.position.set(-8, 2, 3); // x a los lados, y altura, z abajo
+
+                    // Hacerlo más pequeño
+                    alien2.scale.set(0.02, 0.02, 0.02); // Reducir tamaño
+
+                    scene.add(alien2);
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar el alien:', error);
+                }
+            );
+        }
+
 
         // ===== CARGAR METEORITO =====
         function cargarMeteorito() {
             loader.load(
-                'meteorito2.glb',
+                '../nivel1/meteorito1.glb',
+                function (gltf) {
+                    const meteorito = gltf.scene;
+                    
+                    // Posición aleatoria en los bordes
+                    let x, z;
+                    if (Math.random() > 0.5) {
+                        x = (Math.random() - 0.5) * 20;
+                        z = Math.random() > 0.5 ? 10 : -10;
+                    } else {
+                        x = Math.random() > 0.5 ? 10 : -10;
+                        z = (Math.random() - 0.5) * 20;
+                    }
+                    
+                    meteorito.position.set(x, 0, z);
+                    
+                    // Escala aleatoria
+                    const scale = 0.3 + Math.random() * 0.4;
+                    meteorito.scale.set(scale, scale, scale);
+                    
+                    // Dirección hacia el centro (nave)
+                    meteorito.userData = {
+                        speed: meteoritoSpeed + Math.random() * 0.03,
+                        direction: new THREE.Vector3(-x, 0, -z).normalize()
+                    };
+                    
+                    scene.add(meteorito);
+                    meteoritos.push(meteorito);
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar meteorito:', error);
+                }
+            );
+        }
+        
+        function cargarMeteorito2() {
+            loader.load(
+                '../nivel2/meteorito2.glb',
                 function (gltf) {
                     const meteorito = gltf.scene;
 
@@ -192,7 +251,7 @@
 
         function cargarMeteorito3() {
             loader.load(
-                'meteorito3.glb',
+                '../nivel2/meteorito3.glb',
                 function (gltf) {
                     const meteorito = gltf.scene;
 
@@ -233,14 +292,22 @@
         function iniciarJuego() {
             // Iniciar bucle del juego
             animate();
+           
         }
 
         // Crear un nuevo meteorito
         function spawnMeteorito() {
             cargarMeteorito();
+            cargarMeteorito2();
             cargarMeteorito3();
 
         }
+        function spawnAlien() {
+            // Crear un nuevo alien (puedes ajustar la lógica de aparición aquí)
+          cargarAlien();
+          cargarAlien2();
+        }
+     
 
         // Actualizar el juego
         function updateGame(currentTime) {
