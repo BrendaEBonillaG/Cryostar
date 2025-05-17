@@ -13,7 +13,7 @@ function obtenerPublicaciones() {
     FB.api(
         "/9214317305329274/posts", // Reemplaza con tu ID de página
         {
-            access_token: "EAAH2jyiC4pYBOygynq7uq2wBIZCEjMxcvg6w7YOLONheiUZCdOqrRfqnyFIUJA9BSs0Ye4VTeyGMSfvuNmMKcjRAU8JKJOO7RXZBqeCZCoxDVrmTEoQeuM7kZBZAzVBmHtnbHWZAT7ioke6jZAjHGR9Je7jKxKiWZAckmm4PZCaOmLKlSiIX6jrPYtBO2UYgs9ZCKesjt4duQNMDfeSXDjOdgZDZD"
+            access_token: "EAAQsSGsuJCwBO0FZAVMPWREwgMqAI9UZAEJjQUpkdiZAQSHf5NOrhfZANUYowgaKgRYc2W11hIv9tUfZB4OTDUNA5bHdXznTYT17J6oG6UFc6fyv6TCZBqkqtefshQ8YZCmlUqTXYsT4RlhMqjMvOBB1fAEJP6WEBWFKrEKy9x1SP9VD2W6zzGoZCxKz1wEoz4bc2D8Fm6sCZCH6lvXh0TJbgJ7oZD"
         },
         function(response) {
             if (response && !response.error) {

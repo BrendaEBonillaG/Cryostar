@@ -17,7 +17,7 @@ function publicarMensaje() {
         "POST",
         {
             message: mensaje,
-            access_token: "EAAQsSGsuJCwBO9yKRWUmW310ThrCNbjXiLULzaYvtBE2ZBo5z7NksqYp9TVaJJlAKZBM0uxeuVhqJXByq3e4lbZC9EO8zVNzWIZA2TlXWbP0ZAhKA2JxGEfZC8ZAbEY6afnOs6jQ8ZBjARiGNrAs9GSI5YdUwGWwN5PjtfOpHJlZCW2ZBtx69MZATJRBYjIkVKypKTVJsGDWCdnJxvFLUThcRMPEZA9NqQZDZD"
+            access_token: "EAAH2jyiC4pYBOzldiZCVgnetsVcfiFt4fLRKz2HnVQwIWTAcMLRx8ZBtOwqVdSFtloO6NMhan48uh1ZAOL6hOv3gY0LZAtL8cl3uZC1y5M0fjI40fgf14Lpw1nRtkmx6SiOKXoX8mR3tQOlYZBdW5r1qbp68LGQjZCSxIB4wsfiA4oSHMIOSEzn66n7Fn4AUouXX9Wv4Lr30yndTjVMAvrSm4p3csAZCwA8EbwptS4dZBUhsIlCQKhZCDz6u757WUZD"
         },
         function(response) {
             if (response && !response.error) {
