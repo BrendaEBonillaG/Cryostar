@@ -198,7 +198,27 @@
             );
         }
 
+        // ===== DISPARAR =====
+        function dispararProyectil() {
+            if (!nave) return; // Asegúrate que la nave ya está cargada
 
+            // Crear una esfera simple para el proyectil
+            const geometry = new THREE.SphereGeometry(0.1, 8, 8);
+            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const proyectil = new THREE.Mesh(geometry, material);
+
+            // Posición inicial justo delante de la nave
+            proyectil.position.set(nave.position.x, 0.1, nave.position.z - 1);
+            scene.add(proyectil);
+
+            // Guardamos el proyectil con su velocidad y dirección (hacia arriba en z negativo)
+            proyectil.userData = {
+                speed: proyectilSpeed,
+                direction: new THREE.Vector3(0, 0, -1)
+            };
+
+            proyectiles.push(proyectil);
+        }
 
 
 
@@ -231,53 +251,90 @@
             }
 
             // Mover meteoritos hacia la nave
-            for (let i = meteoritos.length - 1; i >= 0; i--) {
-                const meteorito = meteoritos[i];
-                const dir = meteorito.userData.direction;
+            // Actualizar meteoritos (tu código existente)
+for (let i = meteoritos.length - 1; i >= 0; i--) {
+    const meteorito = meteoritos[i];
+    const dir = meteorito.userData.direction;
 
-                meteorito.position.x += dir.x * meteorito.userData.speed;
-                meteorito.position.z += dir.z * meteorito.userData.speed;
+    meteorito.position.x += dir.x * meteorito.userData.speed;
+    meteorito.position.z += dir.z * meteorito.userData.speed;
 
-                // Rotar meteorito
-                meteorito.rotation.x += 0.01;
-                meteorito.rotation.z += 0.01;
+    // Rotar meteorito
+    meteorito.rotation.x += 0.01;
+    meteorito.rotation.z += 0.01;
 
-                // Detectar colisiones
-                const distance = Math.sqrt(
-                    Math.pow(meteorito.position.x - nave.position.x, 2) +
-                    Math.pow(meteorito.position.z - nave.position.z, 2)
-                );
+    // Detectar colisiones con la nave
+    const distance = Math.sqrt(
+        Math.pow(meteorito.position.x - nave.position.x, 2) +
+        Math.pow(meteorito.position.z - nave.position.z, 2)
+    );
 
-                if (distance < 1.0) {
-                    // Colisión detectada
-                    scene.remove(meteorito);
-                    meteoritos.splice(i, 1);
-                    lives--;
-                    document.getElementById('lives').textContent = lives;
+    if (distance < 1.0) {
+        // Colisión detectada
+        scene.remove(meteorito);
+        meteoritos.splice(i, 1);
+        lives--;
+        document.getElementById('lives').textContent = lives;
 
-                    if (lives <= 0) {
-                        gameOver = true;
-                        const gameOverText = document.createElement('div');
-                        gameOverText.className = 'loading';
-                        gameOverText.textContent = '¡Juego terminado! Puntuación: ' + score;
-                        document.body.appendChild(gameOverText);
-                    }
+        if (lives <= 0) {
+            gameOver = true;
+            const gameOverText = document.createElement('div');
+            gameOverText.className = 'loading';
+            gameOverText.textContent = '¡Juego terminado! Puntuación: ' + score;
+            document.body.appendChild(gameOverText);
+        }
+    }
 
-                }
+    // Eliminar meteoritos que pasaron el centro
+    const centerDistance = Math.sqrt(
+        Math.pow(meteorito.position.x, 2) +
+        Math.pow(meteorito.position.z, 2)
+    );
 
-                // Eliminar meteoritos que pasaron el centro
-                const centerDistance = Math.sqrt(
-                    Math.pow(meteorito.position.x, 2) +
-                    Math.pow(meteorito.position.z, 2)
-                );
+    if (centerDistance < 0.5) {
+        scene.remove(meteorito);
+        meteoritos.splice(i, 1);
+        score++;
+        document.getElementById('score').textContent = score;
+    }
+}
 
-                if (centerDistance < 0.5) {
-                    scene.remove(meteorito);
-                    meteoritos.splice(i, 1);
-                    score++;
-                    document.getElementById('score').textContent = score;
-                }
-            }
+// Actualizar proyectiles: mover y detectar colisiones con meteoritos
+for (let i = proyectiles.length - 1; i >= 0; i--) {
+    const proyectil = proyectiles[i];
+
+    // Mover proyectil hacia adelante (en dirección -z)
+    proyectil.position.add(proyectil.userData.direction.clone().multiplyScalar(proyectil.userData.speed));
+
+    // Eliminar proyectiles que se salen del área de juego
+    if (proyectil.position.z < -15) {
+        scene.remove(proyectil);
+        proyectiles.splice(i, 1);
+        continue;
+    }
+
+    // Detectar colisiones con meteoritos
+    for (let j = meteoritos.length - 1; j >= 0; j--) {
+        const meteorito = meteoritos[j];
+        const distance = proyectil.position.distanceTo(meteorito.position);
+
+        if (distance < 0.7) { // Ajusta el valor según tamaños
+            // Remover meteorito y proyectil
+            scene.remove(meteorito);
+            meteoritos.splice(j, 1);
+
+            scene.remove(proyectil);
+            proyectiles.splice(i, 1);
+
+            // Incrementar puntuación
+            score++;
+            document.getElementById('score').textContent = score;
+
+            break; // Salir del for de meteoritos porque el proyectil ya fue eliminado
+        }
+    }
+}
+
         }
 
         // Controlar la nave con teclado
@@ -299,6 +356,10 @@
                     break;
                 case 'ArrowDown':
                     if (nave.position.z < moveLimit) nave.position.z += moveSpeed;
+                    break;
+
+                case 'e':  // Disparar
+                    dispararProyectil();
                     break;
             }
         }
