@@ -61,6 +61,8 @@
         let loader = new THREE.GLTFLoader();
         let proyectiles = [];
         let proyectilSpeed = 0.5;  // Velocidad de los proyectiles
+        let keysPressed = {};
+
 
 
         // Inicializar el juego
@@ -236,6 +238,7 @@
         function updateGame(currentTime) {
             if (gameOver) return;
 
+            moverNave();
             // Generar nuevos meteoritos
             if (currentTime - lastSpawnTime > spawnInterval) {
                 spawnMeteorito();
@@ -253,117 +256,133 @@
             // Mover meteoritos hacia la nave
             // Actualizar meteoritos (tu código existente)
             // Actualizar meteoritos (sin sumar puntaje cuando pasan el centro)
-for (let i = meteoritos.length - 1; i >= 0; i--) {
-    const meteorito = meteoritos[i];
-    const dir = meteorito.userData.direction;
+            for (let i = meteoritos.length - 1; i >= 0; i--) {
+                const meteorito = meteoritos[i];
+                const dir = meteorito.userData.direction;
 
-    meteorito.position.x += dir.x * meteorito.userData.speed;
-    meteorito.position.z += dir.z * meteorito.userData.speed;
+                meteorito.position.x += dir.x * meteorito.userData.speed;
+                meteorito.position.z += dir.z * meteorito.userData.speed;
 
-    // Rotar meteorito
-    meteorito.rotation.x += 0.01;
-    meteorito.rotation.z += 0.01;
+                // Rotar meteorito
+                meteorito.rotation.x += 0.01;
+                meteorito.rotation.z += 0.01;
 
-    // Detectar colisiones con la nave
-    const distance = Math.sqrt(
-        Math.pow(meteorito.position.x - nave.position.x, 2) +
-        Math.pow(meteorito.position.z - nave.position.z, 2)
-    );
+                // Detectar colisiones con la nave
+                const distance = Math.sqrt(
+                    Math.pow(meteorito.position.x - nave.position.x, 2) +
+                    Math.pow(meteorito.position.z - nave.position.z, 2)
+                );
 
-    if (distance < 1.0) {
-        // Colisión detectada
-        scene.remove(meteorito);
-        meteoritos.splice(i, 1);
-        lives--;
-        document.getElementById('lives').textContent = lives;
+                if (distance < 1.0) {
+                    // Colisión detectada
+                    scene.remove(meteorito);
+                    meteoritos.splice(i, 1);
+                    lives--;
+                    document.getElementById('lives').textContent = lives;
 
-        if (lives <= 0) {
-            gameOver = true;
-            const gameOverText = document.createElement('div');
-            gameOverText.className = 'loading';
-            gameOverText.textContent = '¡Juego terminado! Puntuación: ' + score;
-            document.body.appendChild(gameOverText);
-        }
-    }
+                    if (lives <= 0) {
+                        gameOver = true;
+                        const gameOverText = document.createElement('div');
+                        gameOverText.className = 'loading';
+                        gameOverText.textContent = '¡Juego terminado! Puntuación: ' + score;
+                        document.body.appendChild(gameOverText);
+                    }
+                }
 
-    // Eliminar meteoritos que pasaron el centro SIN sumar puntaje
-    const centerDistance = Math.sqrt(
-        Math.pow(meteorito.position.x, 2) +
-        Math.pow(meteorito.position.z, 2)
-    );
+                // Eliminar meteoritos que pasaron el centro SIN sumar puntaje
+                const centerDistance = Math.sqrt(
+                    Math.pow(meteorito.position.x, 2) +
+                    Math.pow(meteorito.position.z, 2)
+                );
 
-    if (centerDistance < 0.5) {
-        scene.remove(meteorito);
-        meteoritos.splice(i, 1);
-        // Aquí NO aumentamos el score
-    }
-}
+                if (centerDistance < 0.5) {
+                    scene.remove(meteorito);
+                    meteoritos.splice(i, 1);
+                    // Aquí NO aumentamos el score
+                }
+            }
 
-// Actualizar proyectiles: mover y detectar colisiones con meteoritos
-for (let i = proyectiles.length - 1; i >= 0; i--) {
-    const proyectil = proyectiles[i];
+            // Actualizar proyectiles: mover y detectar colisiones con meteoritos
+            for (let i = proyectiles.length - 1; i >= 0; i--) {
+                const proyectil = proyectiles[i];
 
-    // Mover proyectil hacia adelante (en dirección -z)
-    proyectil.position.add(proyectil.userData.direction.clone().multiplyScalar(proyectil.userData.speed));
+                // Mover proyectil hacia adelante (en dirección -z)
+                proyectil.position.add(proyectil.userData.direction.clone().multiplyScalar(proyectil.userData.speed));
 
-    // Eliminar proyectiles que se salen del área de juego
-    if (proyectil.position.z < -15) {
-        scene.remove(proyectil);
-        proyectiles.splice(i, 1);
-        continue;
-    }
+                // Eliminar proyectiles que se salen del área de juego
+                if (proyectil.position.z < -15) {
+                    scene.remove(proyectil);
+                    proyectiles.splice(i, 1);
+                    continue;
+                }
 
-    // Detectar colisiones con meteoritos
-    for (let j = meteoritos.length - 1; j >= 0; j--) {
-        const meteorito = meteoritos[j];
-        const distance = proyectil.position.distanceTo(meteorito.position);
+                // Detectar colisiones con meteoritos
+                for (let j = meteoritos.length - 1; j >= 0; j--) {
+                    const meteorito = meteoritos[j];
+                    const distance = proyectil.position.distanceTo(meteorito.position);
 
-        if (distance < 0.7) { // Ajusta el valor según tamaños
-            // Remover meteorito y proyectil
-            scene.remove(meteorito);
-            meteoritos.splice(j, 1);
+                    if (distance < 0.7) { // Ajusta el valor según tamaños
+                        // Remover meteorito y proyectil
+                        scene.remove(meteorito);
+                        meteoritos.splice(j, 1);
 
-            scene.remove(proyectil);
-            proyectiles.splice(i, 1);
+                        scene.remove(proyectil);
+                        proyectiles.splice(i, 1);
 
-            // Incrementar puntuación SOLO aquí, cuando un meteorito es destruido por un disparo
-            score++;
-            document.getElementById('score').textContent = score;
+                        // Incrementar puntuación SOLO aquí, cuando un meteorito es destruido por un disparo
+                        score++;
+                        document.getElementById('score').textContent = score;
 
-            break; // Salir del for de meteoritos porque el proyectil ya fue eliminado
-        }
-    }
-}
+                        break; // Salir del for de meteoritos porque el proyectil ya fue eliminado
+                    }
+                }
+            }
 
 
         }
 
         // Controlar la nave con teclado
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
+
         function onKeyDown(event) {
-            if (gameOver) return;
+            if (event.code === 'ArrowLeft') keysPressed.ArrowLeft = true;
+            if (event.code === 'ArrowRight') keysPressed.ArrowRight = true;
+            if (event.code === 'ArrowUp') keysPressed.ArrowUp = true;
+            if (event.code === 'ArrowDown') keysPressed.ArrowDown = true;
+            if (event.code === 'Space') dispararProyectil();
+        }
 
-            const moveSpeed = 0.3;
-            const moveLimit = 8; // Límite de movimiento
+        function onKeyUp(event) {
+            if (event.code === 'ArrowLeft') keysPressed.ArrowLeft = false;
+            if (event.code === 'ArrowRight') keysPressed.ArrowRight = false;
+            if (event.code === 'ArrowUp') keysPressed.ArrowUp = false;
+            if (event.code === 'ArrowDown') keysPressed.ArrowDown = false;
+        }
 
-            switch (event.key) {
-                case 'ArrowLeft':
-                    if (nave.position.x > -moveLimit) nave.position.x -= moveSpeed;
-                    break;
-                case 'ArrowRight':
-                    if (nave.position.x < moveLimit) nave.position.x += moveSpeed;
-                    break;
-                case 'ArrowUp':
-                    if (nave.position.z > -moveLimit) nave.position.z -= moveSpeed;
-                    break;
-                case 'ArrowDown':
-                    if (nave.position.z < moveLimit) nave.position.z += moveSpeed;
-                    break;
+        function moverNave() {
+            if (!nave) return;
 
-                case 'e':  // Disparar
-                    dispararProyectil();
-                    break;
+            const speed = 0.2;
+
+            if (keysPressed.ArrowLeft) {
+                nave.position.x -= speed;
+                if (nave.position.x < -9) nave.position.x = -9; // límites de juego
+            }
+            if (keysPressed.ArrowRight) {
+                nave.position.x += speed;
+                if (nave.position.x > 9) nave.position.x = 9;
+            }
+            if (keysPressed.ArrowUp) {
+                nave.position.z -= speed;
+                if (nave.position.z < -7) nave.position.z = -7;
+            }
+            if (keysPressed.ArrowDown) {
+                nave.position.z += speed;
+                if (nave.position.z > 7) nave.position.z = 7;
             }
         }
+
 
         // Redimensionar
         function onWindowResize() {
