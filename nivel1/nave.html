@@ -252,6 +252,7 @@
 
             // Mover meteoritos hacia la nave
             // Actualizar meteoritos (tu código existente)
+            // Actualizar meteoritos (sin sumar puntaje cuando pasan el centro)
 for (let i = meteoritos.length - 1; i >= 0; i--) {
     const meteorito = meteoritos[i];
     const dir = meteorito.userData.direction;
@@ -285,7 +286,7 @@ for (let i = meteoritos.length - 1; i >= 0; i--) {
         }
     }
 
-    // Eliminar meteoritos que pasaron el centro
+    // Eliminar meteoritos que pasaron el centro SIN sumar puntaje
     const centerDistance = Math.sqrt(
         Math.pow(meteorito.position.x, 2) +
         Math.pow(meteorito.position.z, 2)
@@ -294,8 +295,7 @@ for (let i = meteoritos.length - 1; i >= 0; i--) {
     if (centerDistance < 0.5) {
         scene.remove(meteorito);
         meteoritos.splice(i, 1);
-        score++;
-        document.getElementById('score').textContent = score;
+        // Aquí NO aumentamos el score
     }
 }
 
@@ -326,7 +326,7 @@ for (let i = proyectiles.length - 1; i >= 0; i--) {
             scene.remove(proyectil);
             proyectiles.splice(i, 1);
 
-            // Incrementar puntuación
+            // Incrementar puntuación SOLO aquí, cuando un meteorito es destruido por un disparo
             score++;
             document.getElementById('score').textContent = score;
 
@@ -334,6 +334,7 @@ for (let i = proyectiles.length - 1; i >= 0; i--) {
         }
     }
 }
+
 
         }
 
