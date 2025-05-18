@@ -141,56 +141,56 @@
 
         // ===== CARGAR METEORITO =====
         function cargarMeteorito() {
-    loader.load(
-        'meteorito1.glb',
-        function (gltf) {
-            const meteorito = gltf.scene;
+            loader.load(
+                'meteorito1.glb',
+                function (gltf) {
+                    const meteorito = gltf.scene;
 
-            // Posición aleatoria en los bordes
-            let x, z;
-            if (Math.random() > 0.5) {
-                x = (Math.random() - 0.5) * 20;
-                z = Math.random() > 0.5 ? 10 : -10;
-            } else {
-                x = Math.random() > 0.5 ? 10 : -10;
-                z = (Math.random() - 0.5) * 20;
-            }
+                    // Posición aleatoria en los bordes
+                    let x, z;
+                    if (Math.random() > 0.5) {
+                        x = (Math.random() - 0.5) * 20;
+                        z = Math.random() > 0.5 ? 10 : -10;
+                    } else {
+                        x = Math.random() > 0.5 ? 10 : -10;
+                        z = (Math.random() - 0.5) * 20;
+                    }
 
-            meteorito.position.set(x, 0, z);
+                    meteorito.position.set(x, 0, z);
 
-            // Escala aleatoria
-            const scale = 0.5 + Math.random() * 0.7;
-            meteorito.scale.set(scale, scale, scale);
+                    // Escala aleatoria
+                    const scale = 0.5 + Math.random() * 0.7;
+                    meteorito.scale.set(scale, scale, scale);
 
-            // Vector hacia el centro
-            const centerVector = new THREE.Vector3(-x, 0, -z).normalize();
+                    // Vector hacia el centro
+                    const centerVector = new THREE.Vector3(-x, 0, -z).normalize();
 
-            // Vector aleatorio pequeño
-            const randomAngle = (Math.random() - 0.5) * Math.PI / 3; // +-30 grados
-            // Rotar el vector centerVector en Y (plano XZ)
-            const cosA = Math.cos(randomAngle);
-            const sinA = Math.sin(randomAngle);
+                    // Vector aleatorio pequeño
+                    const randomAngle = (Math.random() - 0.5) * Math.PI / 3; // +-30 grados
+                    // Rotar el vector centerVector en Y (plano XZ)
+                    const cosA = Math.cos(randomAngle);
+                    const sinA = Math.sin(randomAngle);
 
-            const direction = new THREE.Vector3(
-                centerVector.x * cosA - centerVector.z * sinA,
-                0,
-                centerVector.x * sinA + centerVector.z * cosA
-            ).normalize();
+                    const direction = new THREE.Vector3(
+                        centerVector.x * cosA - centerVector.z * sinA,
+                        0,
+                        centerVector.x * sinA + centerVector.z * cosA
+                    ).normalize();
 
-            meteorito.userData = {
-                speed: meteoritoSpeed + Math.random() * 0.03,
-                direction: direction
-            };
+                    meteorito.userData = {
+                        speed: meteoritoSpeed + Math.random() * 0.03,
+                        direction: direction
+                    };
 
-            scene.add(meteorito);
-            meteoritos.push(meteorito);
-        },
-        undefined,
-        function (error) {
-            console.error('Error al cargar meteorito:', error);
+                    scene.add(meteorito);
+                    meteoritos.push(meteorito);
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar meteorito:', error);
+                }
+            );
         }
-    );
-}
 
         // ===== CARGAR ALIEN =====
         function cargarAlien() {
@@ -269,8 +269,7 @@
             }
 
             // Mover meteoritos hacia la nave
-            // Actualizar meteoritos (tu código existente)
-            // Actualizar meteoritos (sin sumar puntaje cuando pasan el centro)
+
             for (let i = meteoritos.length - 1; i >= 0; i--) {
                 const meteorito = meteoritos[i];
                 const dir = meteorito.userData.direction;
@@ -378,7 +377,7 @@
         function moverNave() {
             if (!nave) return;
 
-            const speed = 0.2;
+            const speed = 0.1;
 
             if (keysPressed.ArrowLeft) {
                 nave.position.x -= speed;
