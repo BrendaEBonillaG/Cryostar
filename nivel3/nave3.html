@@ -62,7 +62,7 @@
         let proyectiles = [];
         let proyectilSpeed = 0.5;  // Velocidad de los proyectiles
         let keysPressed = {};
-
+        const disparoAudio = new Audio('../Audios/disparo.mp3');
 
 
         // Inicializar el juego
@@ -361,6 +361,8 @@
             };
 
             proyectiles.push(proyectil);
+             disparoAudio.currentTime = 0; // Reinicia el sonido si se dispara rápido
+            disparoAudio.play();
         }
 
 
