@@ -1,0 +1,243 @@
+        // Variables del juego
+        let scene, camera, renderer;
+        let nave, meteoritos = [];
+        let score = 0;
+        let lives = 3;
+        let gameOver = false;
+        let meteoritoSpeed = 0.05;
+        let spawnInterval = 2000; // ms
+        let lastSpawnTime = 0;
+        let loader = new THREE.GLTFLoader();
+        
+        // Inicializar el juego
+        function initGame() {
+            // Escena
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000020);
+            
+            // Cámara en vista superior (ortográfica)
+            const aspect = window.innerWidth / window.innerHeight;
+            const viewSize = 15;
+            camera = new THREE.OrthographicCamera(
+                -viewSize * aspect / 2,
+                viewSize * aspect / 2,
+                viewSize / 2,
+                -viewSize / 2,
+                0.1,
+                1000
+            );
+            camera.position.set(0, 20, 0);
+            camera.lookAt(0, 0, 0);
+            camera.rotation.x = -Math.PI / 2; // Mira directamente hacia abajo
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('game-container').appendChild(renderer.domElement);
+            
+            // Luces
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(0, 10, 0);
+            scene.add(light);
+            
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            // Cuadrícula para referencia (opcional)
+            const gridHelper = new THREE.GridHelper(20, 20, 0x555555, 0x333333);
+            scene.add(gridHelper);
+            
+            // Cargar modelos
+            cargarNave();
+            
+            // Eventos
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('keydown', onKeyDown);
+        }
+        
+        // ===== CARGAR NAVE =====
+        function cargarNave() {
+            loader.load(
+                'Nave_03.glb',
+                function (gltf) {
+                    nave = gltf.scene;
+                    // Ajustes para vista superior
+                    nave.rotation.x = 60; // No rotar en X
+                    nave.rotation.z = Math.PI; // Rotar 180 grados para que mire "hacia arriba" en la pantalla
+                    nave.position.set(0, 0, 0);
+                    nave.scale.set(0.5, 0.5, 0.5);
+                    scene.add(nave);
+                    document.querySelector('.loading').style.display = 'none';
+                    iniciarJuego();
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar la nave:', error);
+                    document.querySelector('.loading').textContent = 'Error al cargar la nave.';
+                }
+            );
+        }
+        
+        // ===== CARGAR METEORITO =====
+        function cargarMeteorito() {
+            loader.load(
+                'meteorito1.glb',
+                function (gltf) {
+                    const meteorito = gltf.scene;
+                    
+                    // Posición aleatoria en los bordes
+                    let x, z;
+                    if (Math.random() > 0.5) {
+                        x = (Math.random() - 0.5) * 20;
+                        z = Math.random() > 0.5 ? 10 : -10;
+                    } else {
+                        x = Math.random() > 0.5 ? 10 : -10;
+                        z = (Math.random() - 0.5) * 20;
+                    }
+                    
+                    meteorito.position.set(x, 0, z);
+                    
+                    // Escala aleatoria
+                    const scale = 0.3 + Math.random() * 0.4;
+                    meteorito.scale.set(scale, scale, scale);
+                    
+                    // Dirección hacia el centro (nave)
+                    meteorito.userData = {
+                        speed: meteoritoSpeed + Math.random() * 0.03,
+                        direction: new THREE.Vector3(-x, 0, -z).normalize()
+                    };
+                    
+                    scene.add(meteorito);
+                    meteoritos.push(meteorito);
+                },
+                undefined,
+                function (error) {
+                    console.error('Error al cargar meteorito:', error);
+                }
+            );
+        }
+        
+
+          
+
+
+        function iniciarJuego() {
+            // Iniciar bucle del juego
+            animate();
+        }
+        
+        // Crear un nuevo meteorito
+        function spawnMeteorito() {
+            cargarMeteorito();
+        }
+        
+        // Actualizar el juego
+        function updateGame(currentTime) {
+            if (gameOver) return;
+            
+            // Generar nuevos meteoritos
+            if (currentTime - lastSpawnTime > spawnInterval) {
+                spawnMeteorito();
+                lastSpawnTime = currentTime;
+                
+                // Aumentar dificultad
+                if (spawnInterval > 800) {
+                    spawnInterval -= 50;
+                }
+                if (meteoritoSpeed < 0.15) {
+                    meteoritoSpeed += 0.002;
+                }
+            }
+            
+            // Mover meteoritos hacia la nave
+            for (let i = meteoritos.length - 1; i >= 0; i--) {
+                const meteorito = meteoritos[i];
+                const dir = meteorito.userData.direction;
+                
+                meteorito.position.x += dir.x * meteorito.userData.speed;
+                meteorito.position.z += dir.z * meteorito.userData.speed;
+                
+                // Rotar meteorito
+                meteorito.rotation.x += 0.01;
+                meteorito.rotation.z += 0.01;
+                
+                // Detectar colisiones
+                const distance = Math.sqrt(
+                    Math.pow(meteorito.position.x - nave.position.x, 2) + 
+                    Math.pow(meteorito.position.z - nave.position.z, 2)
+                );
+                
+                if (distance < 1.0) {
+                    // Colisión detectada
+                    scene.remove(meteorito);
+                    meteoritos.splice(i, 1);
+                    lives--;
+                    document.getElementById('lives').textContent = lives;
+                    
+                    if (lives <= 0) {
+                        gameOver = true;
+                        alert('¡Juego terminado! Puntuación: ' + score);
+                    }
+                }
+                
+                // Eliminar meteoritos que pasaron el centro
+                const centerDistance = Math.sqrt(
+                    Math.pow(meteorito.position.x, 2) + 
+                    Math.pow(meteorito.position.z, 2)
+                );
+                
+                if (centerDistance < 0.5) {
+                    scene.remove(meteorito);
+                    meteoritos.splice(i, 1);
+                    score++;
+                    document.getElementById('score').textContent = score;
+                }
+            }
+        }
+        
+        // Controlar la nave con teclado
+        function onKeyDown(event) {
+            if (gameOver) return;
+            
+            const moveSpeed = 0.3;
+            const moveLimit = 8; // Límite de movimiento
+            
+            switch(event.key) {
+                case 'ArrowLeft':
+                    if (nave.position.x > -moveLimit) nave.position.x -= moveSpeed;
+                    break;
+                case 'ArrowRight':
+                    if (nave.position.x < moveLimit) nave.position.x += moveSpeed;
+                    break;
+                case 'ArrowUp':
+                    if (nave.position.z > -moveLimit) nave.position.z -= moveSpeed;
+                    break;
+                case 'ArrowDown':
+                    if (nave.position.z < moveLimit) nave.position.z += moveSpeed;
+                    break;
+            }
+        }
+        
+        // Redimensionar
+        function onWindowResize() {
+            const aspect = window.innerWidth / window.innerHeight;
+            const viewSize = 15;
+            
+            camera.left = -viewSize * aspect / 2;
+            camera.right = viewSize * aspect / 2;
+            camera.top = viewSize / 2;
+            camera.bottom = -viewSize / 2;
+            camera.updateProjectionMatrix();
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // Bucle de animación
+        function animate(currentTime = 0) {
+            requestAnimationFrame(animate);
+            updateGame(currentTime);
+            renderer.render(scene, camera);
+        }
+        
+        // Iniciar el juego cuando se cargue la página
+        window.onload = initGame;
