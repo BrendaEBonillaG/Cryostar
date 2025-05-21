@@ -30,6 +30,16 @@
             font-family: Arial, sans-serif;
             font-size: 24px;
         }
+
+        .escudo {
+            /* Efecto visual para el escudo */
+            box-shadow: 0 0 10px 5px rgba(0, 100, 255, 0.7);
+        }
+
+        .disparo-rapido {
+            /* Efecto visual para disparo rápido */
+            box-shadow: 0 0 10px 5px rgba(255, 200, 0, 0.7);
+        }
     </style>
 </head>
 
@@ -40,7 +50,8 @@
 
     <div id="ui">
         Puntuación: <span id="score">0</span><br>
-        Vidas: <span id="lives">3</span>
+        Vidas: <span id="lives">3</span><br>
+        Power-ups: <span id="powerup-status">Ninguno</span>
     </div>
 
 
@@ -63,8 +74,11 @@
         let proyectilSpeed = 0.5;  // Velocidad de los proyectiles
         let keysPressed = {};
         const disparoAudio = new Audio('../Audios/disparo.mp3');
-
-
+        let powerups = [];
+        let hasShield = false;
+        let isRapidFire = false;
+        let rapidFireInterval = null;
+        let shieldMesh = null;
 
         // Inicializar el juego
         function initGame() {
@@ -110,6 +124,10 @@
             // Eventos
             window.addEventListener('resize', onWindowResize);
             window.addEventListener('keydown', onKeyDown);
+            window.addEventListener('keyup', onKeyUp);
+
+            // Iniciar generación de power-ups
+            setInterval(crearPowerUp, 10000); // uno nuevo cada 10s
         }
 
         // ===== CARGAR NAVE =====
@@ -218,7 +236,7 @@
 
         // ===== DISPARAR =====
         function dispararProyectil() {
-            if (!nave) return; // Asegúrate que la nave ya está cargada
+            if (!nave || gameOver) return; // Asegúrate que la nave ya está cargada y el juego no ha terminado
 
             // Crear una esfera simple para el proyectil
             const geometry = new THREE.SphereGeometry(0.1, 8, 8);
@@ -236,27 +254,170 @@
             };
 
             proyectiles.push(proyectil);
-            disparoAudio.currentTime = 0; // Reinicia el sonido si se dispara rápido
-            disparoAudio.play();
+            if (disparoAudio) {
+                disparoAudio.currentTime = 0; // Reinicia el sonido si se dispara rápido
+                disparoAudio.play();
+            }
         }
 
+        // ===== POWERUPS =====
+        function crearPowerUp() {
+            if (gameOver) return;
 
+            const tipos = ['rapido', 'escudo', 'bomba'];
+            const tipo = tipos[Math.floor(Math.random() * tipos.length)];
+            let color;
+
+            switch (tipo) {
+                case 'rapido':
+                    color = 0xFFFF00; // Amarillo
+                    break;
+                case 'escudo':
+                    color = 0x00FFFF; // Cian
+                    break;
+                case 'bomba':
+                    color = 0xFF00FF; // Magenta
+                    break;
+                default:
+                    color = 0x00FF00; // Verde por defecto
+            }
+
+            const geometry = new THREE.SphereGeometry(0.4, 16, 16);
+            const material = new THREE.MeshBasicMaterial({ color: color });
+            const powerup = new THREE.Mesh(geometry, material);
+
+            const x = (Math.random() - 0.5) * 18;
+            const z = (Math.random() - 0.5) * 18;
+            powerup.position.set(x, 0.4, z);
+
+            powerup.userData = {
+                tipo: tipo,
+                tiempoRecogida: 0
+            };
+
+            scene.add(powerup);
+            powerups.push(powerup);
+
+            // Eliminar powerup después de 10 segundos si no se recoge
+            setTimeout(() => {
+                if (powerups.includes(powerup)) {
+                    scene.remove(powerup);
+                    powerups = powerups.filter(p => p !== powerup);
+                }
+            }, 10000);
+        }
+
+        function detectarColisionPowerUps() {
+            if (!nave || powerups.length === 0) return;
+
+            for (let i = powerups.length - 1; i >= 0; i--) {
+                const powerup = powerups[i];
+                const distance = nave.position.distanceTo(powerup.position);
+
+                if (distance < 1.0) { // Radio de colisión
+                    // Aplicar efecto del power-up
+                    aplicarPowerUp(powerup.userData.tipo);
+                    
+                    // Eliminar power-up de la escena
+                    scene.remove(powerup);
+                    powerups.splice(i, 1);
+                }
+            }
+        }
+
+        function aplicarPowerUp(tipo) {
+            document.getElementById('powerup-status').textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1);
+            
+            switch (tipo) {
+                case 'rapido':
+                    activarDisparoRapido();
+                    break;
+                case 'escudo':
+                    activarEscudo();
+                    break;
+                case 'bomba':
+                    eliminarMeteoritos();
+                    break;
+            }
+
+            // Resetear el estado después de 5 segundos
+            setTimeout(() => {
+                document.getElementById('powerup-status').textContent = 'Ninguno';
+            }, 5000);
+        }
+
+        function eliminarMeteoritos() {
+            for (let i = meteoritos.length - 1; i >= 0; i--) {
+                scene.remove(meteoritos[i]);
+                meteoritos.splice(i, 1);
+                score += 2; // Bonus por eliminar con bomba
+            }
+            document.getElementById('score').textContent = score;
+        }
+
+        function activarEscudo() {
+            if (hasShield) return; // Evita doble escudo
+            hasShield = true;
+            
+            // Crear un escudo visual
+            const shieldGeometry = new THREE.SphereGeometry(1.2, 16, 16);
+            const shieldMaterial = new THREE.MeshBasicMaterial({
+                color: 0x0066FF,
+                transparent: true,
+                opacity: 0.5,
+                wireframe: true
+            });
+            shieldMesh = new THREE.Mesh(shieldGeometry, shieldMaterial);
+            shieldMesh.position.copy(nave.position);
+            scene.add(shieldMesh);
+
+            setTimeout(() => {
+                hasShield = false;
+                if (shieldMesh) {
+                    scene.remove(shieldMesh);
+                    shieldMesh = null;
+                }
+            }, 10000); // 10 segundos
+        }
+
+        function activarDisparoRapido() {
+            if (isRapidFire) return; // Evita doble activación
+            isRapidFire = true;
+            const originalSpeed = proyectilSpeed;
+            proyectilSpeed = 1.0; // Disparo más rápido
+
+            // Configurar disparo automático
+            rapidFireInterval = setInterval(dispararProyectil, 200);
+
+            setTimeout(() => {
+                isRapidFire = false;
+                proyectilSpeed = originalSpeed;
+                if (rapidFireInterval) {
+                    clearInterval(rapidFireInterval);
+                    rapidFireInterval = null;
+                }
+            }, 5000); // Dura 5 segundos
+        }
 
         function iniciarJuego() {
             // Iniciar bucle del juego
             animate();
         }
-
-        // Crear un nuevo meteorito
+        
         function spawnMeteorito() {
             cargarMeteorito();
         }
 
-        // Actualizar el juego
         function updateGame(currentTime) {
             if (gameOver) return;
 
             moverNave();
+            
+            // Mover y actualizar el escudo si existe
+            if (shieldMesh && nave) {
+                shieldMesh.position.copy(nave.position);
+            }
+
             // Generar nuevos meteoritos
             if (currentTime - lastSpawnTime > spawnInterval) {
                 spawnMeteorito();
@@ -271,8 +432,7 @@
                 }
             }
 
-            // Mover meteoritos hacia la nave
-
+            // Mover meteoritos
             for (let i = meteoritos.length - 1; i >= 0; i--) {
                 const meteorito = meteoritos[i];
                 const dir = meteorito.userData.direction;
@@ -294,19 +454,23 @@
                     // Colisión detectada
                     scene.remove(meteorito);
                     meteoritos.splice(i, 1);
-                    lives--;
-                    document.getElementById('lives').textContent = lives;
+                    
+                    // Solo perder vida si no hay escudo activo
+                    if (!hasShield) {
+                        lives--;
+                        document.getElementById('lives').textContent = lives;
 
-                    if (lives <= 0) {
-                        gameOver = true;
-                        const gameOverText = document.createElement('div');
-                        gameOverText.className = 'loading';
-                        gameOverText.textContent = '¡Juego terminado! Puntuación: ' + score;
-                        document.body.appendChild(gameOverText);
+                        if (lives <= 0) {
+                            gameOver = true;
+                            const gameOverText = document.createElement('div');
+                            gameOverText.className = 'loading';
+                            gameOverText.textContent = '¡Juego terminado! Puntuación: ' + score;
+                            document.body.appendChild(gameOverText);
+                        }
                     }
                 }
 
-                // Eliminar meteoritos que pasaron el centro SIN sumar puntaje
+                // Eliminar meteoritos que pasaron el centro
                 const centerDistance = Math.sqrt(
                     Math.pow(meteorito.position.x, 2) +
                     Math.pow(meteorito.position.z, 2)
@@ -315,19 +479,18 @@
                 if (centerDistance < 0.5) {
                     scene.remove(meteorito);
                     meteoritos.splice(i, 1);
-                    // Aquí NO aumentamos el score
                 }
             }
 
-            // Actualizar proyectiles: mover y detectar colisiones con meteoritos
+            // Actualizar proyectiles
             for (let i = proyectiles.length - 1; i >= 0; i--) {
                 const proyectil = proyectiles[i];
 
-                // Mover proyectil hacia adelante (en dirección -z)
+                // Mover proyectil
                 proyectil.position.add(proyectil.userData.direction.clone().multiplyScalar(proyectil.userData.speed));
 
                 // Eliminar proyectiles que se salen del área de juego
-                if (proyectil.position.z < -15) {
+                if (Math.abs(proyectil.position.x) > 15 || Math.abs(proyectil.position.z) > 15) {
                     scene.remove(proyectil);
                     proyectiles.splice(i, 1);
                     continue;
@@ -338,7 +501,7 @@
                     const meteorito = meteoritos[j];
                     const distance = proyectil.position.distanceTo(meteorito.position);
 
-                    if (distance < 0.7) { // Ajusta el valor según tamaños
+                    if (distance < 0.7) {
                         // Remover meteorito y proyectil
                         scene.remove(meteorito);
                         meteoritos.splice(j, 1);
@@ -346,22 +509,20 @@
                         scene.remove(proyectil);
                         proyectiles.splice(i, 1);
 
-                        // Incrementar puntuación SOLO aquí, cuando un meteorito es destruido por un disparo
+                        // Incrementar puntuación
                         score++;
                         document.getElementById('score').textContent = score;
 
-                        break; // Salir del for de meteoritos porque el proyectil ya fue eliminado
+                        break;
                     }
                 }
             }
 
-
+            // Detectar colisiones con power-ups
+            detectarColisionPowerUps();
         }
 
         // Controlar la nave con teclado
-        window.addEventListener('keydown', onKeyDown);
-        window.addEventListener('keyup', onKeyUp);
-
         function onKeyDown(event) {
             if (event.code === 'ArrowLeft') keysPressed.ArrowLeft = true;
             if (event.code === 'ArrowRight') keysPressed.ArrowRight = true;
@@ -384,7 +545,7 @@
 
             if (keysPressed.ArrowLeft) {
                 nave.position.x -= speed;
-                if (nave.position.x < -9) nave.position.x = -9; // límites de juego
+                if (nave.position.x < -9) nave.position.x = -9;
             }
             if (keysPressed.ArrowRight) {
                 nave.position.x += speed;
@@ -400,8 +561,6 @@
             }
         }
 
-
-        // Redimensionar
         function onWindowResize() {
             const aspect = window.innerWidth / window.innerHeight;
             const viewSize = 15;
@@ -415,16 +574,13 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Bucle de animación
         function animate(currentTime = 0) {
             requestAnimationFrame(animate);
             updateGame(currentTime);
             renderer.render(scene, camera);
         }
 
-        // Iniciar el juego cuando se cargue la página
         window.onload = initGame;
     </script>
 </body>
-
 </html>
