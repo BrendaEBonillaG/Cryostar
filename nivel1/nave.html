@@ -19,6 +19,7 @@
             color: white;
             font-family: Arial, sans-serif;
             pointer-events: none;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff;
         }
 
         .loading {
@@ -29,16 +30,59 @@
             color: white;
             font-family: Arial, sans-serif;
             font-size: 24px;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff;
         }
 
-        .escudo {
-            /* Efecto visual para el escudo */
-            box-shadow: 0 0 10px 5px rgba(0, 100, 255, 0.7);
+        /* Efectos para los power-ups */
+        .powerup-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.5s ease-out;
         }
 
-        .disparo-rapido {
-            /* Efecto visual para disparo rápido */
-            box-shadow: 0 0 10px 5px rgba(255, 200, 0, 0.7);
+        /* Estilos para el escudo activo */
+        .escudo-activo {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px dashed rgba(0, 200, 255, 0.7);
+            box-shadow: 0 0 15px 5px rgba(0, 200, 255, 0.5);
+            pointer-events: none;
+            z-index: 90;
+            animation: escudo-pulse 2s infinite;
+        }
+
+        @keyframes escudo-pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Efecto de recogida */
+        @keyframes powerup-collected {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        /* Indicador de power-up activo */
+        .powerup-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        /* Estilo para el texto de power-up activo */
+        #powerup-status {
+            font-weight: bold;
+            text-shadow: 0 0 5px currentColor;
         }
     </style>
 </head>
@@ -51,13 +95,15 @@
     <div id="ui">
         Puntuación: <span id="score">0</span><br>
         Vidas: <span id="lives">3</span><br>
-        Power-ups: <span id="powerup-status">Ninguno</span>
+        Power-up: <span id="powerup-status">Ninguno</span>
     </div>
-
 
     <!-- Three.js y GLTFLoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- Para el texto en los power-ups -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/geometries/TextGeometry.js"></script>
 
     <script>
         // Variables del juego
@@ -71,7 +117,7 @@
         let lastSpawnTime = 0;
         let loader = new THREE.GLTFLoader();
         let proyectiles = [];
-        let proyectilSpeed = 0.5;  // Velocidad de los proyectiles
+        let proyectilSpeed = 0.5;
         let keysPressed = {};
         const disparoAudio = new Audio('../Audios/disparo.mp3');
         let powerups = [];
@@ -79,6 +125,7 @@
         let isRapidFire = false;
         let rapidFireInterval = null;
         let shieldMesh = null;
+        let font = null;
 
         // Inicializar el juego
         function initGame() {
@@ -114,12 +161,12 @@
             const ambientLight = new THREE.AmbientLight(0x404040);
             scene.add(ambientLight);
 
-            // Cuadrícula para referencia (opcional)
-            const gridHelper = new THREE.GridHelper(20, 20, 0x555555, 0x333333);
-            scene.add(gridHelper);
-
-            // Cargar modelos
-            cargarNave();
+            // Cargar fuente para los textos
+            const fontLoader = new THREE.FontLoader();
+            fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.132.2/examples/fonts/helvetiker_regular.typeface.json', function(loadedFont) {
+                font = loadedFont;
+                cargarNave();
+            });
 
             // Eventos
             window.addEventListener('resize', onWindowResize);
@@ -144,7 +191,7 @@
                     nave.scale.set(0.2, 0.2, 0.2);
                     scene.add(nave);
                     cargarAlien();
-                    scene.background = new THREE.Color(0x0f0f3d); // negro total, por ejemplo
+                    scene.background = new THREE.Color(0x0f0f3d);
 
                     document.querySelector('.loading').style.display = 'none';
 
@@ -236,7 +283,7 @@
 
         // ===== DISPARAR =====
         function dispararProyectil() {
-            if (!nave || gameOver) return; // Asegúrate que la nave ya está cargada y el juego no ha terminado
+            if (!nave || gameOver) return;
 
             // Crear una esfera simple para el proyectil
             const geometry = new THREE.SphereGeometry(0.1, 8, 8);
@@ -255,7 +302,7 @@
 
             proyectiles.push(proyectil);
             if (disparoAudio) {
-                disparoAudio.currentTime = 0; // Reinicia el sonido si se dispara rápido
+                disparoAudio.currentTime = 0;
                 disparoAudio.play();
             }
         }
@@ -266,39 +313,69 @@
 
             const tipos = ['rapido', 'escudo', 'bomba'];
             const tipo = tipos[Math.floor(Math.random() * tipos.length)];
-            let color;
+            let color, emoji;
 
             switch (tipo) {
                 case 'rapido':
-                    color = 0xFFFF00; // Amarillo
+                    color = 0xFFD700; // Oro
+                    emoji = '⚡';
                     break;
                 case 'escudo':
-                    color = 0x00FFFF; // Cian
+                    color = 0x00BFFF; // Azul cielo
+                    emoji = '🛡️';
                     break;
                 case 'bomba':
-                    color = 0xFF00FF; // Magenta
+                    color = 0xFF4500; // Rojo anaranjado
+                    emoji = '💣';
                     break;
                 default:
-                    color = 0x00FF00; // Verde por defecto
+                    color = 0x00FF00; // Verde
+                    emoji = '❓';
             }
 
-            const geometry = new THREE.SphereGeometry(0.4, 16, 16);
-            const material = new THREE.MeshBasicMaterial({ color: color });
+            // Crear geometría del power-up
+            const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+            const material = new THREE.MeshPhongMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.5,
+                shininess: 100,
+                transparent: true,
+                opacity: 0.9
+            });
+            
             const powerup = new THREE.Mesh(geometry, material);
+            
+            // Añadir texto (emoji) al power-up si la fuente está cargada
+            if (font) {
+                const textGeometry = new THREE.TextGeometry(emoji, {
+                    size: 0.5,
+                    height: 0.1,
+                    font: font
+                });
+                const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                textMesh.position.set(0, 0, 0.6);
+                powerup.add(textMesh);
+            }
 
+            // Posición aleatoria
             const x = (Math.random() - 0.5) * 18;
             const z = (Math.random() - 0.5) * 18;
-            powerup.position.set(x, 0.4, z);
+            powerup.position.set(x, 0.5, z);
 
+            // Animación de flotación
             powerup.userData = {
                 tipo: tipo,
-                tiempoRecogida: 0
+                tiempoRecogida: 0,
+                floatOffset: Math.random() * Math.PI * 2,
+                originalY: 0.5
             };
 
             scene.add(powerup);
             powerups.push(powerup);
 
-            // Eliminar powerup después de 10 segundos si no se recoge
+            // Eliminar después de 10 segundos
             setTimeout(() => {
                 if (powerups.includes(powerup)) {
                     scene.remove(powerup);
@@ -326,8 +403,38 @@
         }
 
         function aplicarPowerUp(tipo) {
-            document.getElementById('powerup-status').textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1);
-            
+            // Mostrar en UI
+            const powerupStatus = document.getElementById('powerup-status');
+            powerupStatus.textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1);
+            powerupStatus.style.color = {
+                'rapido': '#FFD700',
+                'escudo': '#00BFFF',
+                'bomba': '#FF4500'
+            }[tipo];
+
+            // Crear efecto visual de recogida
+            const effect = document.createElement('div');
+            effect.className = 'powerup-effect';
+            effect.style.background = `radial-gradient(circle, rgba(255,255,255,0.8) 0%, ${
+                {
+                    'rapido': 'rgba(255,215,0,0) 70%',
+                    'escudo': 'rgba(0,191,255,0) 70%',
+                    'bomba': 'rgba(255,69,0,0) 70%'
+                }[tipo]
+            }`;
+            effect.style.left = `${window.innerWidth/2 - 50}px`;
+            effect.style.top = `${window.innerHeight/2 - 50}px`;
+            effect.style.borderRadius = '50%';
+            effect.style.opacity = '1';
+            document.body.appendChild(effect);
+
+            setTimeout(() => {
+                effect.style.transform = 'scale(2)';
+                effect.style.opacity = '0';
+                setTimeout(() => effect.remove(), 500);
+            }, 10);
+
+            // Aplicar efecto del power-up
             switch (tipo) {
                 case 'rapido':
                     activarDisparoRapido();
@@ -342,7 +449,8 @@
 
             // Resetear el estado después de 5 segundos
             setTimeout(() => {
-                document.getElementById('powerup-status').textContent = 'Ninguno';
+                powerupStatus.textContent = 'Ninguno';
+                powerupStatus.style.color = 'white';
             }, 5000);
         }
 
@@ -356,7 +464,7 @@
         }
 
         function activarEscudo() {
-            if (hasShield) return; // Evita doble escudo
+            if (hasShield) return;
             hasShield = true;
             
             // Crear un escudo visual
@@ -381,7 +489,7 @@
         }
 
         function activarDisparoRapido() {
-            if (isRapidFire) return; // Evita doble activación
+            if (isRapidFire) return;
             isRapidFire = true;
             const originalSpeed = proyectilSpeed;
             proyectilSpeed = 1.0; // Disparo más rápido
@@ -400,10 +508,9 @@
         }
 
         function iniciarJuego() {
-            // Iniciar bucle del juego
             animate();
         }
-        
+
         function spawnMeteorito() {
             cargarMeteorito();
         }
@@ -431,6 +538,20 @@
                     meteoritoSpeed += 0.002;
                 }
             }
+
+            // Animar power-ups
+            powerups.forEach(powerup => {
+                // Flotación suave
+                powerup.position.y = powerup.userData.originalY + Math.sin(currentTime * 0.001 + powerup.userData.floatOffset) * 0.2;
+                
+                // Rotación
+                powerup.rotation.y += 0.02;
+                
+                // Parpadeo antes de desaparecer
+                if (Date.now() - powerup.userData.tiempoRecogida > 8000) {
+                    powerup.material.opacity = 0.5 + 0.4 * Math.sin(currentTime * 0.02);
+                }
+            });
 
             // Mover meteoritos
             for (let i = meteoritos.length - 1; i >= 0; i--) {
