@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../CSS/powerups.css ">
+    <title>Cryostar</title>
+</head>
+<body>
+    <canvas id="spaceCanvas" style="display: block;"></canvas>
+    <canvas id="spaceCanvas2" style="display: none;"></canvas>
+    <canvas id="spaceCanvas3" style="display: none;"></canvas>
+    <script src="../JS/fondos.js"></script>
+    <div id="game-container"></div>
+    <div class="loading">Cargando...</div>
+    <div id="ui">
+        <h2 id="nivel-titulo" style="margin-top: 0; color: #00a8ff;">Nivel 1 Fácil</h2>
+        Puntuación: <span id="score" style="font-weight: bold;">0</span><br>
+        Vidas: <span id="lives" style="font-weight: bold;">3</span>
+        <div class="powerup-indicator" id="rapid-fire-indicator">⚡ Disparo rápido: Inactivo</div>
+        <div class="powerup-indicator" id="shield-indicator">🛡️ Escudo: Inactivo</div>
+        <div class="powerup-indicator" id="clear-screen-indicator">💣 Eliminar meteoros: Listo</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="../JS/jugabilidad_Facil_Nivel1.js"></script>
+</body>
+</html> 

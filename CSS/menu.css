@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Sixtyfour+Convergence&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  justify-content: center; /* Centrado horizontal */
+  align-items: center;     /* Centrado vertical si es necesario */
+  min-height: 100vh;       /* Asegura que ocupe toda la altura de la pantalla */
+  background-image: url(BACKGROUNDS/mars2.png);
+  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+ /* diseno de botones                              */
+button {
+  width: 100px;
+  height: 100px;
+  border-radius: 25%; 
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-size: 2.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: #000000ab;
+
+  color: #444;
+  transition: all 0.2s ease;
+}
+
+button:active {
+  box-shadow:
+    inset 6px 6px 8px #B22222,
+    inset -6px -6px 8px #B22222;
+}
+
+.config-button {
+  position: fixed;
+  bottom: 4%;
+  left: 1%;
+}
+
+.score-button {
+  position: fixed;
+  bottom: 4%;
+  right: 1%;
+}
+
+#settings {
+  color: #a75757; 
+}
+
+#settings:active {
+  color: #503535;
+}
+
+#scores {
+  color: #a75757; 
+}
+
+#scores:active {
+  color: #503535;
+}
+
+/* aqui termina el diseno de botones */
+
+/* aqui empieza el diseno del frame */
+.frame-hub{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 1900px;
+  height: 500px;
+  background-color: #000000a8;
+  position: fixed;
+  right: 4%;
+  bottom: 32%;
+
+}
+.line-izq{
+  margin-right: auto;
+  width: 20px;
+  height: 500px;
+  background-color: rgb(255, 11, 11);
+}
+
+
+.titulo-game{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 150px;
+  margin-bottom: 300px;
+  width: 300px;
+  height: 100px;
+  /* background-color: aliceblue; */
+}
+
+.titulo-game h1{
+  font-size: 50px;
+  font-family: "Sixtyfour Convergence", sans-serif;
+}
+
+.base-imag {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 270px;
+  height: 700px;
+  margin-right: 90px;
+  margin-top: 100px;
+  background: linear-gradient(135deg, #2f0a0a, #201212, #5e1c1c);
+  clip-path: polygon(0% 80%, 100% 100%, 100% 0%, 0% 0%);
+  border-radius: 0; 
+  overflow: visible;
+  z-index: 0;
+  
+  box-shadow:
+    0 0 10px rgba(255, 69, 0, 0.6),     
+    0 0 20px rgba(178, 34, 34, 0.45),   
+    0 0 30px rgba(255, 99, 71, 0.5),    
+    0 0 40px rgba(178, 34, 34, 0.3);
+}
+
+.base-imag::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0% 80%, 100% 100%, 100% 0%, 0% 0%);
+  border: 3px solid transparent;
+  border-image: linear-gradient(45deg, #FF4500, #B22222, #FF4500) 1;
+  filter: drop-shadow(0 0 10px #FF4500) drop-shadow(0 0 20px #B22222);
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 0;
+  animation: glowPulse 3s ease-in-out infinite alternate;
+}
+
+.base-imag::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  clip-path: polygon(0% 80%, 100% 100%, 100% 0%, 0% 0%);
+  border: 2px solid;
+  border-image: linear-gradient(270deg, #B22222, #FF4500, #B22222) 1;
+  filter: drop-shadow(0 0 8px #B22222) drop-shadow(0 0 15px #FF4500);
+  z-index: 2;
+  pointer-events: none;
+  border-radius: 0;
+  animation: glowShift 6s linear infinite;
+}
+
+@keyframes glowPulse {
+  0% {
+    filter: drop-shadow(0 0 8px #FF4500) drop-shadow(0 0 15px #B22222);
+    opacity: 0.8;
+  }
+  100% {
+    filter: drop-shadow(0 0 20px #FF4500) drop-shadow(0 0 30px #B22222);
+    opacity: 1;
+  }
+}
+
+@keyframes glowShift {
+  0% {
+    border-image: linear-gradient(270deg, #B22222, #FF4500, #B22222) 1;
+  }
+  50% {
+    border-image: linear-gradient(90deg, #FF4500, #B22222, #FF4500) 1;
+  }
+  100% {
+    border-image: linear-gradient(270deg, #B22222, #FF4500, #B22222) 1;
+  }
+}
+
+.image-layer {
+  position: absolute;
+  left: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+}
+img{
+  width: 550px;
+  height: 550px;
+}
+
+  .nave-frame{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 300px;
+    margin-bottom: 250px;
+    height: 150px;
+    width: 100px; 
+    border-radius: 20px;
+    background-color: rgb(7, 7, 7);
+    border: 3px solid;
+    border-color: #B22222;
+  }
+  .nave-frame img{
+    width: 100px;
+    height: 100px;
+  }
+
+  .boton-start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 250px;
+    margin-bottom: 50px;
+    height: 100px; 
+  }
+
+.space-button {
+    position: relative;
+    background: linear-gradient(145deg, #2f0a0f, #1a0408);
+    color: #aa2f2f;
+    font-family: "Pixelify Sans", sans-serif;
+    font-weight: 700;
+    font-size: 3rem;
+    padding: 4rem 10rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow:
+      0 0 15px #ff3a3a,
+      0 0 30px #ff295b,
+      inset 0 0 15px #ff3a3a;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    transition: all 0.25s ease-in-out;
+    overflow: hidden;
+    outline: none;
+}
+
+.space-button::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    border-radius: 36px;
+    background:
+      radial-gradient(circle at top left, #ff3ae1ff, transparent 70%),
+      radial-gradient(circle at bottom right, #fe2378cc, transparent 75%);
+    filter: blur(8px);
+    opacity: 0.8;
+    z-index: -2;
+    transition: opacity 0.3s ease;
+}
+
+.space-button::after {
+    content: "";
+    position: absolute;
+    top: 10%;
+    left: 5%;
+    width: 90%;
+    height: 80%;
+    background:
+      radial-gradient(2px 2px at 20% 30%, #fca2cdfc, transparent 80%),
+      radial-gradient(2px 2px at 50% 50%, #ff78f1ff, transparent 70%),
+      radial-gradient(1px 1px at 80% 70%, #ff6a6abb, transparent 80%);
+    pointer-events: none;
+    border-radius: 26px;
+    opacity: 0.5;
+    animation: twinkle 3s infinite alternate;
+    z-index: -1;
+}
+
+@keyframes twinkle {
+    0% {
+      opacity: 0.2;
+      transform: scale(1) translate(0, 0);
+    }
+    100% {
+      opacity: 0.5;
+      transform: scale(1.02) translate(1px, -1px);
+    }
+}
+
+.space-button:active {
+    transform: scale(0.92);
+    box-shadow:
+      0 0 8px #ff3a3a,
+      0 0 15px #ff1a3e,
+      inset 0 0 25px #ff2265;
+    background: linear-gradient(135deg, #1a0408, #2f0a0f);
+}
+
+.space-button:focus {
+    outline: 2px solid #ff3aafff;
+    outline-offset: 4px;
+}
+
+
+
