@@ -27,6 +27,8 @@ let loader = new THREE.GLTFLoader();
 let proyectiles = [];
 let keysPressed = {};
 const disparoAudio = new Audio('../Audios/disparo.mp3');
+disparoAudio.volume = 0.3; // Puedes ajustar entre 0.0 (silencio) y 1.0 (máximo)
+
 const fondoAudio = new Audio('../Audios/musica.mp3');
 fondoAudio.loop = true;
 fondoAudio.volume = 0.8; // Opcional: ajusta el volumen (0.0 a 1.0)
