@@ -27,6 +27,10 @@ let loader = new THREE.GLTFLoader();
 let proyectiles = [];
 let keysPressed = {};
 const disparoAudio = new Audio('../Audios/disparo.mp3');
+const fondoAudio = new Audio('../Audios/musica.mp3');
+fondoAudio.loop = true;
+fondoAudio.volume = 0.8; // Opcional: ajusta el volumen (0.0 a 1.0)
+
 let lastShotTime = 0;
 let canShoot = true;
 const NORMAL_SHOOT_DELAY = 500;
@@ -193,6 +197,7 @@ function cargarNave() {
                 document.querySelector('.loading').style.display = 'none';
                 gameStartTime = performance.now();
                 iniciarJuego();
+
             },
             undefined,
             function (error) {
@@ -870,7 +875,7 @@ function checkProyectilCollisions(proyectilIndex) {
             removeMeteorito(j);
             proyectil.visible = false;
             proyectiles.splice(proyectilIndex, 1);
-            score+=10;
+            score += 10;
             document.getElementById('score').textContent = score;
             return;
         }
@@ -1133,6 +1138,8 @@ function restartGame() {
 }
 
 function iniciarJuego() {
+    
+
     animate();
 
 }
@@ -1147,7 +1154,8 @@ function animate(currentTime = 0) {
     renderer.render(scene, camera);
 }
 
-window.onload = initGame;
+
+
 
 
 
@@ -1212,3 +1220,18 @@ const contador = setInterval(() => {
     }
 }, 1000); // cada segundo
 
+window.addEventListener('DOMContentLoaded', () => {
+    const btnIniciar = document.getElementById('btnIniciar');
+    btnIniciar.addEventListener('click', async () => {
+        try {
+            await fondoAudio.play();
+        } catch (e) {
+            console.warn("Audio bloqueado:", e);
+            alert("⚠️ El navegador bloqueó la música. Haz clic para continuar.");
+        }
+        document.getElementById('pantalla-inicio').style.display = 'none';
+        initGame();
+    });
+});
+
+window.initGame = initGame;
