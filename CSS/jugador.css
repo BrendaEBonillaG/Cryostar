@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Orbitron', sans-serif;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  background: black;
+}
+
+/* Fondo animado */
+.background-animation {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(0, 0, 50, 0.8), black);
+  overflow: hidden;
+  z-index: -1;
+}
+
+.game-mode-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.game-mode-title {
+  font-size: 2.5rem;
+  text-shadow: 0 0 20px cyan;
+}
+
+.game-mode-buttons {
+  margin-top: 20px;
+}
+
+.mode-btn {
+  font-size: 1.5rem;
+  padding: 15px 40px;
+  margin: 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: 0.3s;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.single-player {
+  background: linear-gradient(90deg, #0088ff, #00ffee);
+  color: white;
+  box-shadow: 0 0 15px #00ffee;
+}
+
+.multiplayer {
+  background: linear-gradient(90deg, #ff8800, #ff2200);
+  color: white;
+  box-shadow: 0 0 15px #ff8800;
+}
+
+.mode-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px white;
+}

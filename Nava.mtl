@@ -1,8 +1,0 @@
-const mtlLoader = new THREE.MTLLoader();
-mtlLoader.load('models/nave.mtl', (materials) => {
-    materials.preload();
-    loader.setMaterials(materials);
-    loader.load('models/nave.obj', (object) => {
-        scene.add(object);
-    });
-});

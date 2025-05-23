@@ -1,25 +1,27 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seleccionar Dificultad</title>
-  <link rel="stylesheet" href="menu.css">
+  <link rel="stylesheet" href="CSS/MenuD.css">
 </head>
 <body>
   <div class="difficulty-container">
     <h1 class="difficulty-title">Selecciona la Dificultad</h1>
     <div class="difficulty-buttons">
-      <button class="difficulty-btn easy" onclick="selectDifficulty('nivel1/nave')">Fácil</button>
-      <button class="difficulty-btn normal" onclick="selectDifficulty('nivel2/nave2')">Normal</button>
-      <button class="difficulty-btn hard" onclick="selectDifficulty('nivel3/nave3')">Difícil</button>
+      <button class="difficulty-btn easy" onclick="selectDifficulty('Fácil')">Fácil</button>
+      <button class="difficulty-btn normal" onclick="selectDifficulty('Normal')">Normal</button>
+      <button class="difficulty-btn hard" onclick="selectDifficulty('Difícil')">Difícil</button>
     </div>
   </div>
 
   <script>
     function selectDifficulty(level) {
-      // Redirige a la página correspondiente según el nivel
-      window.location.href = level + ".html";
+      alert(`¡Has seleccionado la dificultad: ${level}!`);
+    }
+    function selectDifficulty() {
+            window.location.href = 'Niveles/Nivel1.html';
     }
   </script>
 </body>
