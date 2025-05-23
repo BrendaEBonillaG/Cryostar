@@ -669,6 +669,7 @@ function updateGame(currentTime) {
     if (gameOver) return;
 
     moverNave();
+    updateAliensMovimiento();
 
     // Generación controlada de meteoritos
     if (currentTime - lastSpawnTime > spawnInterval &&
@@ -716,6 +717,30 @@ function updateMeteoritos() {
         }
     }
 }
+
+function updateAliensMovimiento() {
+    // Movimiento en X entre -8 y +8
+    const velocidad = 0.1;
+
+    aliens.forEach(alien => {
+        if (!alien.userData.direccion) alien.userData.direccion = -1;
+
+        alien.position.x += velocidad * alien.userData.direccion;
+
+        if (alien.position.x <= -11) alien.userData.direccion = 1;
+        if (alien.position.x >= 11) alien.userData.direccion = -1;
+    });
+
+    aliens2.forEach(alien => {
+        if (!alien.userData.direccion) alien.userData.direccion = -1;
+
+        alien.position.x += velocidad * alien.userData.direccion;
+
+        if (alien.position.x <= -8) alien.userData.direccion = 1;
+        if (alien.position.x >= 8) alien.userData.direccion = -1;
+    });
+}
+
 
 function handleMeteoritoCollision(index) {
     createExplosion(meteoritos[index].position.clone(), 0xff0000, 1.5);
