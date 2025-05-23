@@ -42,6 +42,10 @@ const NORMAL_SHOOT_DELAY = 500;
 const RAPID_SHOOT_DELAY = 200;
 let currentShootDelay = NORMAL_SHOOT_DELAY;
 
+let alien1Muerto = false;
+let alien2Muerto = false;
+let nivel3Activado = false;
+
 // Pool de objetos
 let meteoritoPool = [];
 let proyectilPool = [];
@@ -380,7 +384,7 @@ function dañarAlien(alien) {
             const index = aliens.indexOf(alien);
             if (index !== -1) aliens.splice(index, 1);
             console.log("Alien destruido por disparo.");
-
+            alien1Muerto = true;
             // ✅ Aumentar puntuación
             score += 150; // o cualquier valor que desees
             document.getElementById('score').textContent = score;
@@ -437,7 +441,7 @@ function dañarAlien2(alien2) {
             const index = aliens2.indexOf(alien2);
             if (index !== -1) aliens2.splice(index, 1);
             console.log("Alien 2 destruido por disparo.");
-
+            alien2Muerto = true;
             // ✅ Aumentar puntuación
             score += 300; // puedes poner más puntos para este tipo
             document.getElementById('score').textContent = score;
@@ -684,7 +688,7 @@ function playSoundEffect(type) {
 
 // ===== BUCLE PRINCIPAL =====
 function updateGame(currentTime) {
-    if (juegoPausado || gameOver) return; 
+    if (juegoPausado || gameOver) return;
 
     moverNave();
     updateAliensMovimiento();
@@ -701,6 +705,28 @@ function updateGame(currentTime) {
         if (spawnInterval > 800) spawnInterval -= 10;
         if (meteoritoSpeed < 0.1) meteoritoSpeed += 0.0005;
     }
+    // Control de niveles por puntuación
+    let nivel2Activado = false;
+    let nivel3Activado = false;
+
+    if (nivel === 1 && score >= 100 && !nivel2Activado) {
+        nivel = 2;
+        nivel2Activado = true;
+        nivelTitulo.innerText = "Nivel 2 Fácil";
+        iniciarFondoNivel(2);
+        fondoGalaxia(gl2);
+        crearAlien1();
+    }
+
+   if (nivel === 2 && score >= 300 && !nivel3Activado && alien1Muerto) {
+    nivel = 3;
+    nivel3Activado = true;
+    nivelTitulo.innerText = "Nivel 3 Fácil";
+    iniciarFondoNivel(3);
+    fondoPlanetas(gl3);
+    crearAlien2();
+}
+
 
     updateActivePowerUps(currentTime);
     updateMeteoritos();
@@ -1146,9 +1172,9 @@ function showGameOver() {
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
     document.getElementById('TablaP-btn').addEventListener('click', () => {
-    window.location.href = '/API/api_graph_facebook.html';
+        window.location.href = '/API/api_graph_facebook.html';
 
-});
+    });
 
 }
 
@@ -1157,17 +1183,17 @@ function restartGame() {
 }
 
 function iniciarJuego() {
-    
+
 
     animate();
 
 }
 
 function animate(currentTime = 0) {
-  if (juegoPausado) return;
-  animacionID = requestAnimationFrame(animate);
-  updateGame(currentTime);
-  renderer.render(scene, camera);
+    if (juegoPausado) return;
+    animacionID = requestAnimationFrame(animate);
+    updateGame(currentTime);
+    renderer.render(scene, camera);
 }
 
 
@@ -1206,36 +1232,11 @@ function iniciarFondoNivel(nivel) {
     }
 }
 
-let tiempo = 0;
+
 const nivelTitulo = document.getElementById('nivel-titulo');
 let nivel = 1;
 
-const contador = setInterval(() => {
-    tiempo++;
 
-    // Cada 10 segundos sube un nivel
-    if (tiempo % 10 === 0) {
-        nivel++;
-        if (nivel <= 3) {
-            nivelTitulo.innerText = `Nivel ${nivel} Fácil`;
-        }
-
-        if (nivel === 2) {
-            iniciarFondoNivel(2);
-            fondoGalaxia(gl2);
-            crearAlien1();
-        }
-
-        // Detener el contador cuando llega al Nivel 3
-        if (nivel === 3) {
-            iniciarFondoNivel(3);
-            fondoPlanetas(gl3);
-            crearAlien2();
-            clearInterval(contador);
-
-        }
-    }
-}, 1000); // cada segundo
 
 window.addEventListener('DOMContentLoaded', () => {
     const btnIniciar = document.getElementById('btnIniciar');
@@ -1251,61 +1252,61 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 document.getElementById('btnPausa').addEventListener('click', () => {
-  juegoPausado = true;
-  document.getElementById('pause-menu').style.display = 'flex';
-  cancelAnimationFrame(animacionID);
+    juegoPausado = true;
+    document.getElementById('pause-menu').style.display = 'flex';
+    cancelAnimationFrame(animacionID);
 });
 // Permitir que otras scripts usen resumeGame y restartGame
 window.resumeGame = function () {
-  juegoPausado = false;
-  document.getElementById('pause-menu').style.display = 'none';
-  animate(); // Reanuda la animación
+    juegoPausado = false;
+    document.getElementById('pause-menu').style.display = 'none';
+    animate(); // Reanuda la animación
 };
 
 window.restartGame = function () {
-  location.reload();
+    location.reload();
 };
 
 window.exitToMainMenu = function () {
-  const confirmExit = confirm("¿Deseas salir al menú principal?");
-  if (confirmExit) {
-    window.location.href = "Menu.html";
-  }
+    const confirmExit = confirm("¿Deseas salir al menú principal?");
+    if (confirmExit) {
+        window.location.href = "/Menu.html";
+    }
 };
 
 window.openSettings = function () {
-  juegoPausado = true; // 🔒 fuerza pausa
-  cancelAnimationFrame(animacionID); // detiene render
-  document.getElementById("pause-menu").style.display = "none";
-  document.getElementById("settings-menu").style.display = "flex";
+    juegoPausado = true; // 🔒 fuerza pausa
+    cancelAnimationFrame(animacionID); // detiene render
+    document.getElementById("pause-menu").style.display = "none";
+    document.getElementById("settings-menu").style.display = "flex";
 
-  // Set sliders to current volume levels
-  document.getElementById("volGeneral").value = fondoAudio.volume;
-  document.getElementById("volDisparo").value = disparoAudio.volume;
-  document.getElementById("volMusica").value = fondoAudio.volume;
+    // Set sliders to current volume levels
+    document.getElementById("volGeneral").value = fondoAudio.volume;
+    document.getElementById("volDisparo").value = disparoAudio.volume;
+    document.getElementById("volMusica").value = fondoAudio.volume;
 };
 
 
 window.closeSettings = function () {
-  document.getElementById("settings-menu").style.display = "none";
-  document.getElementById("pause-menu").style.display = "flex";
+    document.getElementById("settings-menu").style.display = "none";
+    document.getElementById("pause-menu").style.display = "flex";
 
 };
 
 
 // Eventos para sliders
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("volGeneral").addEventListener("input", (e) => {
-    const vol = parseFloat(e.target.value);
-    fondoAudio.volume = vol;
-    disparoAudio.volume = vol;
-  });
+    document.getElementById("volGeneral").addEventListener("input", (e) => {
+        const vol = parseFloat(e.target.value);
+        fondoAudio.volume = vol;
+        disparoAudio.volume = vol;
+    });
 
 
 
-  document.getElementById("volMusica").addEventListener("input", (e) => {
-    fondoAudio.volume = parseFloat(e.target.value);
-  });
+    document.getElementById("volMusica").addEventListener("input", (e) => {
+        fondoAudio.volume = parseFloat(e.target.value);
+    });
 });
 
 window.initGame = initGame;
