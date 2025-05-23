@@ -1,33 +1,29 @@
-// Función para reanudar el juego
-function resumeGame() {
-  // Reanudar redirigiendo a la partida (puedes cambiar la ruta si es distinta)
-  window.location.href = "Nivel1.html";
-}
+let animacionID;
+let juegoPausado = false;
 
-  
-  // Función para reiniciar el juego
-function restartGame() {
-  const confirmRestart = confirm("¿Estás seguro de que deseas reiniciar el juego?");
-  if (confirmRestart) {
-    window.location.href = "Nivel1.html"; // Reinicia el nivel
-  }
-}
+// Asociar el botón de pausa btnPausa
+document.addEventListener('DOMContentLoaded', () => {
+  const btnPausa = document.getElementById('btnPausa');
+  btnPausa.addEventListener('click', () => {
+    juegoPausado = true;
+    document.getElementById('pause-menu').style.display = 'flex';
+    cancelAnimationFrame(animacionID); // Detener animación
+  });
+});
 
-  
-  // Función para abrir configuraciones
-  function openSettings() {
-    alert("Abriendo configuración...");
-    // Aquí iría la lógica para redirigir o mostrar el menú de configuración.
-    window.location.href = "Configuracion.html";
-  }
-  
-  // Función para salir al menú principal
-  function exitToMainMenu() {
-    const confirmExit = confirm("¿Estás seguro de que deseas salir al menú principal?");
-    if (confirmExit) {
-      alert("Saliendo al menú principal...");
-      // Aquí iría la lógica para regresar al menú principal.
-      window.location.href = "Menu.html";
-    }
-  }
-  
+// Estas funciones deben estar en el ámbito global:
+window.resumeGame = function () {
+  juegoPausado = false;
+  document.getElementById('pause-menu').style.display = 'none';
+  window.animate(); // Reanudar animación
+};
+
+window.restartGame = function () {
+  const confirmRestart = confirm("¿Estás seguro de que deseas reiniciar?");
+  if (confirmRestart) location.reload();
+};
+
+window.exitToMainMenu = function () {
+  const confirmExit = confirm("¿Salir al menú principal?");
+  if (confirmExit) window.location.href = "Menu.html";
+};

@@ -71,13 +71,22 @@
 
     </div>
 
+    <div id="pause-menu"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center; flex-direction:column; color:white;">
+        <h1>Pausa</h1>
+        <button onclick="resumeGame()">Reanudar</button>
+        <button onclick="restartGame()">Reiniciar</button>
+        <button onclick="exitToMainMenu()">Salir</button>
+    </div>
+
+
 
     <!-- Bibliotecas externas -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <script type="module" src="../JS/jugabilidad_Facil_Nivel1.js"></script>
-
+    
 
 </body>
 

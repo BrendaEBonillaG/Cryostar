@@ -34,6 +34,8 @@ const fondoAudio = new Audio('../Audios/musica.mp3');
 fondoAudio.loop = true;
 fondoAudio.volume = 0.8; // Opcional: ajusta el volumen (0.0 a 1.0)
 
+let animacionID;
+let juegoPausado = false;
 let lastShotTime = 0;
 let canShoot = true;
 const NORMAL_SHOOT_DELAY = 500;
@@ -1162,14 +1164,12 @@ function iniciarJuego() {
 }
 
 function animate(currentTime = 0) {
-    requestAnimationFrame(animate);
-    updateGame(currentTime);
-
-
-    console.log("Meteoritos activos:", meteoritos.length);
-
-    renderer.render(scene, camera);
+  if (juegoPausado) return;
+  animacionID = requestAnimationFrame(animate);
+  updateGame(currentTime);
+  renderer.render(scene, camera);
 }
+
 
 
 
@@ -1251,11 +1251,27 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 document.getElementById('btnPausa').addEventListener('click', () => {
-    // Detener música si deseas
-    fondoAudio.pause();
-
-    // Redirigir a la ventana de pausa
-    window.location.href = "/Pausa.html";
+  juegoPausado = true;
+  document.getElementById('pause-menu').style.display = 'flex';
+  cancelAnimationFrame(animacionID);
 });
+// Permitir que otras scripts usen resumeGame y restartGame
+window.resumeGame = function () {
+  juegoPausado = false;
+  document.getElementById('pause-menu').style.display = 'none';
+  animate(); // Reanuda la animación
+};
+
+window.restartGame = function () {
+  location.reload();
+};
+
+window.exitToMainMenu = function () {
+  const confirmExit = confirm("¿Deseas salir al menú principal?");
+  if (confirmExit) {
+    window.location.href = "Menu.html";
+  }
+};
+
 
 window.initGame = initGame;
