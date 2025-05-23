@@ -1240,5 +1240,12 @@ window.addEventListener('DOMContentLoaded', () => {
         initGame();
     });
 });
+document.getElementById('btnPausa').addEventListener('click', () => {
+    // Detener música si deseas
+    fondoAudio.pause();
+
+    // Redirigir a la ventana de pausa
+    window.location.href = "/Pausa.html";
+});
 
 window.initGame = initGame;
