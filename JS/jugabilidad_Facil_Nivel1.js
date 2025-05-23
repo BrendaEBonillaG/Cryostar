@@ -172,7 +172,7 @@ function cargarNave() {
     // Intenta cargar modelo 3D, si falla crea una nave básica
     try {
         loader.load(
-            '../models/Nave_03.glb',
+            '../models/Nave_032.glb',
             function (gltf) {
                 nave = gltf.scene;
 
