@@ -1133,6 +1133,11 @@ function showGameOver() {
     document.body.appendChild(gameOverDiv);
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
+    document.getElementById('TablaP-btn').addEventListener('click', () => {
+    window.location.href = '/API/api_graph_facebook.html';
+
+});
+
 }
 
 function restartGame() {
