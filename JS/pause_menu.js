@@ -1,17 +1,18 @@
 // Función para reanudar el juego
 function resumeGame() {
-    alert("Reanudando el juego...");
-    // Aquí iría la lógica para cerrar el menú y reanudar el juego.
-  }
+  // Reanudar redirigiendo a la partida (puedes cambiar la ruta si es distinta)
+  window.location.href = "Nivel1.html";
+}
+
   
   // Función para reiniciar el juego
-  function restartGame() {
-    const confirmRestart = confirm("¿Estás seguro de que deseas reiniciar el juego?");
-    if (confirmRestart) {
-      alert("Reiniciando el juego...");
-      // Aquí iría la lógica para reiniciar el juego.
-    }
+function restartGame() {
+  const confirmRestart = confirm("¿Estás seguro de que deseas reiniciar el juego?");
+  if (confirmRestart) {
+    window.location.href = "Nivel1.html"; // Reinicia el nivel
   }
+}
+
   
   // Función para abrir configuraciones
   function openSettings() {

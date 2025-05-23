@@ -28,6 +28,12 @@ let loader = new THREE.GLTFLoader();
 let proyectiles = [];
 let keysPressed = {};
 const disparoAudio = new Audio('../Audios/disparo.mp3');
+disparoAudio.volume = 0.3; // Puedes ajustar entre 0.0 (silencio) y 1.0 (máximo)
+
+const fondoAudio = new Audio('../Audios/musica.mp3');
+fondoAudio.loop = true;
+fondoAudio.volume = 0.8; // Opcional: ajusta el volumen (0.0 a 1.0)
+
 let lastShotTime = 0;
 let canShoot = true;
 const NORMAL_SHOOT_DELAY = 500;
@@ -194,6 +200,7 @@ function cargarNave() {
                 document.querySelector('.loading').style.display = 'none';
                 gameStartTime = performance.now();
                 iniciarJuego();
+
             },
             undefined,
             function (error) {
@@ -359,7 +366,6 @@ function dañarAlien(alien) {
         alien.userData.vida--;
         console.log(`¡Alien dañado! Vida restante: ${alien.userData.vida}`);
 
-        // Animación visual (opcional)
         gsap.to(alien.scale, {
             x: 0.12, y: 0.12, z: 0.12,
             yoyo: true,
@@ -372,9 +378,14 @@ function dañarAlien(alien) {
             const index = aliens.indexOf(alien);
             if (index !== -1) aliens.splice(index, 1);
             console.log("Alien destruido por disparo.");
+
+            // ✅ Aumentar puntuación
+            score += 150; // o cualquier valor que desees
+            document.getElementById('score').textContent = score;
         }
     }
 }
+
 
 
 function crearAlien2() {
@@ -412,7 +423,6 @@ function dañarAlien2(alien2) {
         alien2.userData.vida--;
         console.log(`¡Alien dañado! Vida restante: ${alien2.userData.vida}`);
 
-        // Animación visual (opcional)
         gsap.to(alien2.scale, {
             x: 0.12, y: 0.12, z: 0.12,
             yoyo: true,
@@ -422,12 +432,17 @@ function dañarAlien2(alien2) {
 
         if (alien2.userData.vida <= 0) {
             scene.remove(alien2);
-            const index = aliens.indexOf(alien2);
-            if (index !== -1) aliens.splice(index, 1);
-            console.log("Alien destruido por disparo.");
+            const index = aliens2.indexOf(alien2);
+            if (index !== -1) aliens2.splice(index, 1);
+            console.log("Alien 2 destruido por disparo.");
+
+            // ✅ Aumentar puntuación
+            score += 300; // puedes poner más puntos para este tipo
+            document.getElementById('score').textContent = score;
         }
     }
 }
+
 
 // ===== SISTEMA DE POWER-UPS =====
 function crearPowerUp(x, z) {
@@ -863,7 +878,7 @@ function checkProyectilCollisions(proyectilIndex) {
             removeMeteorito(j);
             proyectil.visible = false;
             proyectiles.splice(proyectilIndex, 1);
-            score++;
+            score += 10;
             document.getElementById('score').textContent = score;
             return;
         }
@@ -1128,6 +1143,11 @@ function showGameOver() {
     document.body.appendChild(gameOverDiv);
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
+    document.getElementById('TablaP-btn').addEventListener('click', () => {
+    window.location.href = '/API/api_graph_facebook.html';
+
+});
+
 }
 
 function restartGame() {
@@ -1135,6 +1155,8 @@ function restartGame() {
 }
 
 function iniciarJuego() {
+    
+
     animate();
 
 }
@@ -1149,7 +1171,8 @@ function animate(currentTime = 0) {
     renderer.render(scene, camera);
 }
 
-window.onload = initGame;
+
+
 
 
 
@@ -1214,3 +1237,25 @@ const contador = setInterval(() => {
     }
 }, 1000); // cada segundo
 
+window.addEventListener('DOMContentLoaded', () => {
+    const btnIniciar = document.getElementById('btnIniciar');
+    btnIniciar.addEventListener('click', async () => {
+        try {
+            await fondoAudio.play();
+        } catch (e) {
+            console.warn("Audio bloqueado:", e);
+            alert("⚠️ El navegador bloqueó la música. Haz clic para continuar.");
+        }
+        document.getElementById('pantalla-inicio').style.display = 'none';
+        initGame();
+    });
+});
+document.getElementById('btnPausa').addEventListener('click', () => {
+    // Detener música si deseas
+    fondoAudio.pause();
+
+    // Redirigir a la ventana de pausa
+    window.location.href = "/Pausa.html";
+});
+
+window.initGame = initGame;
