@@ -358,7 +358,6 @@ function dañarAlien(alien) {
         alien.userData.vida--;
         console.log(`¡Alien dañado! Vida restante: ${alien.userData.vida}`);
 
-        // Animación visual (opcional)
         gsap.to(alien.scale, {
             x: 0.12, y: 0.12, z: 0.12,
             yoyo: true,
@@ -371,9 +370,14 @@ function dañarAlien(alien) {
             const index = aliens.indexOf(alien);
             if (index !== -1) aliens.splice(index, 1);
             console.log("Alien destruido por disparo.");
+
+            // ✅ Aumentar puntuación
+            score += 150; // o cualquier valor que desees
+            document.getElementById('score').textContent = score;
         }
     }
 }
+
 
 
 function crearAlien2() {
@@ -411,7 +415,6 @@ function dañarAlien2(alien2) {
         alien2.userData.vida--;
         console.log(`¡Alien dañado! Vida restante: ${alien2.userData.vida}`);
 
-        // Animación visual (opcional)
         gsap.to(alien2.scale, {
             x: 0.12, y: 0.12, z: 0.12,
             yoyo: true,
@@ -421,12 +424,17 @@ function dañarAlien2(alien2) {
 
         if (alien2.userData.vida <= 0) {
             scene.remove(alien2);
-            const index = aliens.indexOf(alien2);
-            if (index !== -1) aliens.splice(index, 1);
-            console.log("Alien destruido por disparo.");
+            const index = aliens2.indexOf(alien2);
+            if (index !== -1) aliens2.splice(index, 1);
+            console.log("Alien 2 destruido por disparo.");
+
+            // ✅ Aumentar puntuación
+            score += 300; // puedes poner más puntos para este tipo
+            document.getElementById('score').textContent = score;
         }
     }
 }
+
 
 // ===== SISTEMA DE POWER-UPS =====
 function crearPowerUp(x, z) {
@@ -862,7 +870,7 @@ function checkProyectilCollisions(proyectilIndex) {
             removeMeteorito(j);
             proyectil.visible = false;
             proyectiles.splice(proyectilIndex, 1);
-            score++;
+            score+=10;
             document.getElementById('score').textContent = score;
             return;
         }
