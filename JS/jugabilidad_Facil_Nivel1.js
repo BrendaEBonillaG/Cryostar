@@ -16,6 +16,7 @@ const CONFIG = {
 };
 
 // Variables del juego
+let dificultad = "Fácil";
 let scene, camera, renderer;
 let nave, meteoritos = [], aliens = [], aliens2 = [], powerUps = [];
 let score = 0, lives = 3, gameOver = false;
@@ -1106,6 +1107,15 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+  function enviarDatos() {
+    localStorage.setItem("score", score);
+    localStorage.setItem("nivel", nivel);
+    localStorage.setItem("dificultad", dificultad);
+
+    
+    window.location.href = "../API/api_graph_facebook.html";
+  }
+
 function showGameOver() {
     const gameOverDiv = document.createElement('div');
     gameOverDiv.className = 'game-over';
@@ -1113,7 +1123,7 @@ function showGameOver() {
                 <h2>¡Juego terminado!</h2>
                 <p>Puntuación final: ${score}</p>
                 <button id="restart-btn">Reiniciar Juego</button>
-                <button id="TablaP-btn">Puntuacion</button>
+                <button onclick="enviarDatos()" id="TablaP-btn">Puntuacion</button>
             `;
     document.body.appendChild(gameOverDiv);
 

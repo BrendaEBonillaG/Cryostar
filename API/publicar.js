@@ -1,3 +1,28 @@
+    const score = localStorage.getItem("score");
+    const nivel = localStorage.getItem("nivel");
+    const dificultad = localStorage.getItem("dificultad");
+
+    document.getElementById("score").textContent = `Puntaje: ${score}`;
+    document.getElementById("nivel").textContent = `Nivel: ${nivel}`;
+    document.getElementById("dificultad").textContent = `Dificultad: ${dificultad}`;
+
+    function guardarTodo() {
+      const nombre = document.getElementById("inputNombre").value;
+      document.getElementById("nombre").textContent = `Nombre: ${nombre}`;
+
+      const datosFinales = {
+        nombre: nombre,
+        score: score,
+        nivel: nivel,
+        dificultad: dificultad
+      };
+
+      localStorage.setItem("datosFinales", JSON.stringify(datosFinales));
+
+      console.log("Datos guardados:", datosFinales);
+    }
+
+
 // Inicializar el SDK de Facebook
 window.fbAsyncInit = function() {
     FB.init({
@@ -10,7 +35,7 @@ window.fbAsyncInit = function() {
 
 // Función para enviar el mensaje
 function publicarMensaje() {
-    const mensaje = "Mi puntaje en Cryostar es de: 18999 puntos"; // Mensaje predeterminado
+    const mensaje = `Hola soy ${nombre} y mi puntaje en Cryostar es de: ${score} puntos y llegué a nivel ${nivel} en ${dificultad}`; // Mensaje predeterminado
 
     FB.api(
         "/122103685574006913/feed", // Reemplaza con tu ID de página

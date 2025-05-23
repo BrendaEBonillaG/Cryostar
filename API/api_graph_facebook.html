@@ -11,10 +11,17 @@
 </head>
 <body>
     <div class="container"> <!-- Contenedor principal -->
+          <input type="text" id="inputNombre" placeholder="Escribe tu nombre" />
+            <button onclick="guardarTodo()">Guardar</button>
+
+                <h1>Resultados</h1>
+                <p id="nombre"></p>
+                <p id="score"></p>
+                <p id="nivel"></p>
+                <p id="dificultad"></p>
+
         <button id="enviar">Publicar mi puntaje</button>
 
-        <h2>Este es tu nuevo puntaje:</h2>
-        <ul id="lista-publicaciones"></ul> <!-- Lista para mostrar la publicacion mas reciente -->
     </div>
 
     <script
