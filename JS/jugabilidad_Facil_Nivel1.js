@@ -1259,7 +1259,7 @@ window.restartGame = function () {
 window.exitToMainMenu = function () {
   const confirmExit = confirm("¿Deseas salir al menú principal?");
   if (confirmExit) {
-    window.location.href = "Menu.html";
+    window.location.href = "/Menu.html";
   }
 };
 
