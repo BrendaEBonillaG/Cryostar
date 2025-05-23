@@ -1263,5 +1263,34 @@ window.exitToMainMenu = function () {
   }
 };
 
+window.openSettings = function () {
+  document.getElementById("pause-menu").style.display = "none";
+  document.getElementById("settings-menu").style.display = "flex";
+
+  // Set sliders to current volume levels
+  document.getElementById("volGeneral").value = fondoAudio.volume;
+  document.getElementById("volDisparo").value = disparoAudio.volume;
+  document.getElementById("volMusica").value = fondoAudio.volume;
+};
+
+window.closeSettings = function () {
+  document.getElementById("settings-menu").style.display = "none";
+  document.getElementById("pause-menu").style.display = "flex";
+};
+
+// Eventos para sliders
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("volGeneral").addEventListener("input", (e) => {
+    const vol = parseFloat(e.target.value);
+    fondoAudio.volume = vol;
+    disparoAudio.volume = vol;
+  });
+
+
+
+  document.getElementById("volMusica").addEventListener("input", (e) => {
+    fondoAudio.volume = parseFloat(e.target.value);
+  });
+});
 
 window.initGame = initGame;
