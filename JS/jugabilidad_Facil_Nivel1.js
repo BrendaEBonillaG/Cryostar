@@ -683,7 +683,7 @@ function playSoundEffect(type) {
 
 // ===== BUCLE PRINCIPAL =====
 function updateGame(currentTime) {
-    if (gameOver) return;
+    if (juegoPausado || gameOver) return; 
 
     moverNave();
     updateAliensMovimiento();
@@ -1264,6 +1264,8 @@ window.exitToMainMenu = function () {
 };
 
 window.openSettings = function () {
+  juegoPausado = true; // 🔒 fuerza pausa
+  cancelAnimationFrame(animacionID); // detiene render
   document.getElementById("pause-menu").style.display = "none";
   document.getElementById("settings-menu").style.display = "flex";
 
@@ -1273,10 +1275,13 @@ window.openSettings = function () {
   document.getElementById("volMusica").value = fondoAudio.volume;
 };
 
+
 window.closeSettings = function () {
   document.getElementById("settings-menu").style.display = "none";
   document.getElementById("pause-menu").style.display = "flex";
+
 };
+
 
 // Eventos para sliders
 document.addEventListener("DOMContentLoaded", () => {
