@@ -2,8 +2,8 @@
 // CONFIGURACIÓN DEL NIVEL FÁCIL
 const CONFIG = {
     MAX_METEORITOS: 600,
-    SPAWN_INTERVAL: 800,
-    METEORITO_SPEED: 0.04,
+    SPAWN_INTERVAL: 400,
+    METEORITO_SPEED: 0.07,
     PROYECTIL_SPEED: 0.7,
     NAVESCALE: 0.5,
     POWERUP_CHANCE: 0.5,
@@ -16,7 +16,6 @@ const CONFIG = {
 };
 
 // Variables del juego
-let dificultad = "Fácil - Solo";
 let scene, camera, renderer;
 let nave, meteoritos = [], aliens = [], aliens2 = [], powerUps = [];
 let score = 0, lives = 3, gameOver = false;
@@ -1151,6 +1150,7 @@ function onWindowResize() {
 }
 
   function enviarDatos() {
+    let dificultad = "Normal - Solo";
     localStorage.setItem("score", score);
     localStorage.setItem("nivel", nivel);
     localStorage.setItem("dificultad", dificultad);
