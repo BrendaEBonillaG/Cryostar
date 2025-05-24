@@ -1,7 +1,7 @@
 
 // CONFIGURACIÓN DEL NIVEL FÁCIL
 const CONFIG = {
-    MAX_METEORITOS: 600,
+    MAX_METEORITOS: 200,
     SPAWN_INTERVAL: 800,
     METEORITO_SPEED: 0.04,
     PROYECTIL_SPEED: 0.7,
@@ -16,10 +16,14 @@ const CONFIG = {
 };
 
 // Variables del juego
-let dificultad = "Fácil - Solo";
 let scene, camera, renderer;
 let nave, meteoritos = [], aliens = [], aliens2 = [], powerUps = [];
 let score = 0, lives = 3, gameOver = false;
+let scoreP1 = 0;
+let scoreP2 = 0;
+let livesP1 = 3;
+let livesP2 = 3;
+
 let meteoritoSpeed = CONFIG.METEORITO_SPEED;
 let spawnInterval = CONFIG.SPAWN_INTERVAL;
 let lastSpawnTime = 0;
@@ -36,16 +40,27 @@ fondoAudio.volume = 0.8; // Opcional: ajusta el volumen (0.0 a 1.0)
 
 let animacionID;
 let juegoPausado = false;
-let lastShotTime = 0;
-let canShoot = true;
+let lastShotTimeP1 = 0;
+let lastShotTimeP2 = 0;
+let canShootP1 = true;
+let canShootP2 = true;
+
 const NORMAL_SHOOT_DELAY = 500;
 const RAPID_SHOOT_DELAY = 200;
 let currentShootDelay = NORMAL_SHOOT_DELAY;
 
 let alien1Muerto = false;
 let alien2Muerto = false;
+let nivel2Activado = false;
 let nivel3Activado = false;
+
+//multijugador
 let player1;
+let player2;
+let nave2;
+
+let nave1Cargada = false;
+let nave2Cargada = false;
 
 // Pool de objetos
 let meteoritoPool = [];
@@ -98,7 +113,7 @@ function initGame() {
 
     createPools();
     cargarNave();
-
+    cargarNave2();
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
@@ -190,10 +205,10 @@ function cargarNave() {
             function (gltf) {
                 nave = gltf.scene;
                 player1 = nave; // Asignar la nave visible como player1
-                
+
                 nave.rotation.y = 84.85;
                 nave.rotation.x = 50;
-                nave.position.set(0, 0, 0);
+                nave.position.set(2, 0, 0);
                 nave.scale.set(0.2, 0.2, 0.2);
 
                 nave.traverse(child => {
@@ -206,8 +221,9 @@ function cargarNave() {
 
                 scene.add(nave);
                 document.querySelector('.loading').style.display = 'none';
-                gameStartTime = performance.now();
-                iniciarJuego();
+                nave1Cargada = true;
+                if (nave1Cargada && nave2Cargada) iniciarJuego();
+
 
             },
             undefined,
@@ -223,6 +239,46 @@ function cargarNave() {
 }
 
 
+function cargarNave2() {
+    // Intenta cargar modelo 3D, si falla crea una nave básica
+    try {
+        loader.load(
+            '../models/player2.glb',
+            function (gltf) {
+                nave2 = gltf.scene;
+                player2 = nave2; // Asignar la nave visible como player1
+
+                nave2.rotation.y = 84.85;
+                nave2.rotation.x = 50;
+                nave2.position.set(-2, 0, 0);
+                nave2.scale.set(0.2, 0.2, 0.2);
+
+                nave2.traverse(child => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = false;
+                        child.material.flatShading = true;
+                    }
+                });
+
+                scene.add(nave2);
+                document.querySelector('.loading').style.display = 'none';
+                nave2Cargada = true;
+                if (nave1Cargada && nave2Cargada) iniciarJuego();
+
+
+            },
+            undefined,
+            function (error) {
+                console.error('Error al cargar la nave:', error);
+                crearNave2Basica();
+            }
+        );
+    } catch (e) {
+        console.error('Error al cargar modelo 3D:', e);
+
+    }
+}
 // ===== SISTEMA DE METEORITOS =====
 function spawnMeteorito(currentTime) {
     if (currentTime - gameStartTime > CONFIG.MAX_SPAWN_TIME) return;
@@ -385,11 +441,14 @@ function dañarAlien(alien) {
             scene.remove(alien);
             const index = aliens.indexOf(alien);
             if (index !== -1) aliens.splice(index, 1);
-            console.log("Alien destruido por disparo.");
-            alien1Muerto = true;
-            // ✅ Aumentar puntuación
-            score += 150; // o cualquier valor que desees
-            document.getElementById('score').textContent = score;
+
+            if (proyectil.userData.disparador === 1) {
+                scoreP1 += 150;
+                document.getElementById('score-p1').textContent = scoreP1;
+            } else if (proyectil.userData.disparador === 2) {
+                scoreP2 += 150;
+                document.getElementById('score-p2').textContent = scoreP2;
+            }
         }
     }
 }
@@ -442,11 +501,14 @@ function dañarAlien2(alien2) {
             scene.remove(alien2);
             const index = aliens2.indexOf(alien2);
             if (index !== -1) aliens2.splice(index, 1);
-            console.log("Alien 2 destruido por disparo.");
-            alien2Muerto = true;
-            // ✅ Aumentar puntuación
-            score += 300; // puedes poner más puntos para este tipo
-            document.getElementById('score').textContent = score;
+
+            if (proyectil.userData.disparador === 1) {
+                scoreP1 += 300;
+                document.getElementById('score-p1').textContent = scoreP1;
+            } else if (proyectil.userData.disparador === 2) {
+                scoreP2 += 300;
+                document.getElementById('score-p2').textContent = scoreP2;
+            }
         }
     }
 }
@@ -580,7 +642,17 @@ function updatePowerUps() {
         );
 
         // Colisión con la nave
-        if (distance < 1.2) {
+        const distanciaNave1 = nave ? Math.sqrt(
+            Math.pow(powerUp.position.x - nave.position.x, 2) +
+            Math.pow(powerUp.position.z - nave.position.z, 2)
+        ) : Infinity;
+
+        const distanciaNave2 = nave2 ? Math.sqrt(
+            Math.pow(powerUp.position.x - nave2.position.x, 2) +
+            Math.pow(powerUp.position.z - nave2.position.z, 2)
+        ) : Infinity;
+
+        if (distanciaNave1 < 1.2 || distanciaNave2 < 1.2) {
             activarPowerUp(powerUp.userData.type, performance.now());
 
             // Efecto de recogida
@@ -597,6 +669,7 @@ function updatePowerUps() {
 
             powerUps.splice(i, 1);
         }
+
         // Eliminar si sale de pantalla
         else if (powerUp.position.z < -15) {
             powerUp.visible = false;
@@ -609,62 +682,78 @@ function updatePowerUps() {
 }
 
 // ===== SISTEMA DE DISPARO =====
-function dispararProyectil(currentTime = performance.now()) {
-    if (!canShoot || currentTime - lastShotTime < currentShootDelay) return;
+function dispararProyectil(disparador, jugador, currentTime = performance.now()) {
+    if (jugador === 1 && (!canShootP1 || currentTime - lastShotTimeP1 < currentShootDelay)) return;
+    if (jugador === 2 && (!canShootP2 || currentTime - lastShotTimeP2 < currentShootDelay)) return;
 
-    lastShotTime = currentTime;
-
-    if (activePowerUps.rapidFire.active) {
-        disparoRapido();
-    } else {
-        disparoNormal();
+    if (jugador === 1) {
+        lastShotTimeP1 = currentTime;
+        canShootP1 = false;
+        setTimeout(() => canShootP1 = true, 100);
     }
 
-    canShoot = false;
-    setTimeout(() => {
-        canShoot = true;
-    }, 100);
-}
+    if (jugador === 2) {
+        lastShotTimeP2 = currentTime;
+        canShootP2 = false;
+        setTimeout(() => canShootP2 = true, 100);
+    }
 
-function disparoNormal() {
-    const proyectil = getProyectilFromPool();
-    if (!proyectil) return;
+    if (activePowerUps.rapidFire.active) {
+        disparoRapido(disparador, jugador);
+    } else {
+        disparoNormal(disparador, jugador);
+    }
 
-    proyectil.position.set(nave.position.x, 0.1, nave.position.z - 0.5);
-    proyectil.userData = {
-        speed: CONFIG.PROYECTIL_SPEED,
-        direction: new THREE.Vector3(0, 0, -1),
-        active: true
-    };
-    proyectil.visible = true;
-    proyectiles.push(proyectil);
 
-    disparoAudio.currentTime = 0; // Reinicia el audio para que se pueda reproducir rápidamente en sucesión
+    disparoAudio.currentTime = 0;
     disparoAudio.play();
 }
 
-function disparoRapido() {
+
+function disparoNormal(disparador, jugador) {
+    const proyectil = getProyectilFromPool();
+    if (!proyectil) return;
+
+    proyectil.position.set(disparador.position.x, 0.1, disparador.position.z - 0.5);
+    proyectil.userData = {
+        speed: CONFIG.PROYECTIL_SPEED,
+        direction: new THREE.Vector3(0, 0, -1),
+        active: true,
+        disparador: jugador
+    };
+
+    proyectil.visible = true;
+    proyectiles.push(proyectil);
+    disparoAudio.currentTime = 0;
+    disparoAudio.play();
+}
+
+function disparoRapido(disparador, jugador) {
     for (let i = -1; i <= 1; i++) {
         const proyectil = getProyectilFromPool();
         if (!proyectil) continue;
 
         proyectil.position.set(
-            nave.position.x + (i * 0.3),
+            disparador.position.x + (i * 0.3),
             0.1,
-            nave.position.z - 0.5
+            disparador.position.z - 0.5
         );
         proyectil.userData = {
             speed: CONFIG.PROYECTIL_SPEED * 1.2,
             direction: new THREE.Vector3(i * 0.1, 0, -1).normalize(),
-            active: true
+            active: true,
+            disparador: jugador
         };
+
         proyectil.visible = true;
         proyectiles.push(proyectil);
     }
 
-    disparoAudio.currentTime = 0; // Reinicia el audio para que se pueda reproducir rápidamente en sucesión
+    disparoAudio.currentTime = 0;
     disparoAudio.play();
 }
+
+
 
 function getProyectilFromPool() {
     return proyectilPool.find(p => !p.visible) || crearNuevoProyectil();
@@ -708,10 +797,10 @@ function updateGame(currentTime) {
         if (meteoritoSpeed < 0.1) meteoritoSpeed += 0.0005;
     }
     // Control de niveles por puntuación
-    let nivel2Activado = false;
-    let nivel3Activado = false;
 
-    if (nivel === 1 && score >= 100 && !nivel2Activado) {
+    const totalScore = scoreP1 + scoreP2;
+
+    if (nivel === 1 && totalScore >= 150 && !nivel2Activado) {
         nivel = 2;
         nivel2Activado = true;
         nivelTitulo.innerText = "Nivel 2 Fácil";
@@ -720,7 +809,7 @@ function updateGame(currentTime) {
         crearAlien1();
     }
 
-    if (nivel === 2 && score >= 300 && !nivel3Activado && alien1Muerto) {
+    if (nivel === 2 && totalScore >= 500 && !nivel3Activado && alien1Muerto) {
         nivel = 3;
         nivel3Activado = true;
         nivelTitulo.innerText = "Nivel 3 Fácil";
@@ -728,6 +817,7 @@ function updateGame(currentTime) {
         fondoPlanetas(gl3);
         crearAlien2();
     }
+
 
 
     updateActivePowerUps(currentTime);
@@ -748,13 +838,16 @@ function updateMeteoritos() {
             meteorito.rotation.z += 0.01;
         }
 
-        const distanceToNave = Math.sqrt(
-            Math.pow(meteorito.position.x - nave.position.x, 2) +
-            Math.pow(meteorito.position.z - nave.position.z, 2)
-        );
+        const distToP1 = nave ? meteorito.position.distanceTo(nave.position) : Infinity;
+        const distToP2 = nave2 ? meteorito.position.distanceTo(nave2.position) : Infinity;
 
-        if (distanceToNave < 1.0) {
-            handleMeteoritoCollision(i);
+        if (distToP1 < 1.0) {
+            handleMeteoritoCollision(i, 1);
+            continue;
+        }
+
+        if (distToP2 < 1.0) {
+            handleMeteoritoCollision(i, 2);
             continue;
         }
 
@@ -788,28 +881,27 @@ function updateAliensMovimiento() {
 }
 
 
-function handleMeteoritoCollision(index) {
+function handleMeteoritoCollision(index, jugador) {
+
     createExplosion(meteoritos[index].position.clone(), 0xff0000, 1.5);
     removeMeteorito(index);
 
     if (!activePowerUps.shield.active) {
-        lives--;
-        document.getElementById('lives').textContent = lives;
-
-        // Efecto de daño a la nave
-        gsap.to(nave.scale, {
-            x: .3, y: .3, z: .3,
-            duration: 0.1,
-            yoyo: true,
-            repeat: 3
-        });
-
-        if (lives <= 0) {
-            gameOver = true;
-            showGameOver();
+        if (jugador === 1) {
+            livesP1--;
+            document.getElementById('lives-p1').textContent = livesP1;
+            gsap.to(nave.scale, { x: .3, y: .3, z: .3, duration: 0.1, yoyo: true, repeat: 3 });
+            if (livesP1 <= 0) gameOver = true;
+        } else if (jugador === 2) {
+            livesP2--;
+            document.getElementById('lives-p2').textContent = livesP2;
+            gsap.to(nave2.scale, { x: .3, y: .3, z: .3, duration: 0.1, yoyo: true, repeat: 3 });
+            if (livesP2 <= 0) gameOver = true;
         }
-        // if
+
+        if (gameOver) showGameOver();
     }
+
 }
 
 function createExplosion(position, color = 0xff6600, size = 1.0) {
@@ -908,10 +1000,18 @@ function checkProyectilCollisions(proyectilIndex) {
             removeMeteorito(j);
             proyectil.visible = false;
             proyectiles.splice(proyectilIndex, 1);
-            score += 10;
-            document.getElementById('score').textContent = score;
+
+            if (proyectil.userData.disparador === 1) {
+                scoreP1 += 10;
+                document.getElementById('score-p1').textContent = scoreP1;
+            } else if (proyectil.userData.disparador === 2) {
+                scoreP2 += 10;
+                document.getElementById('score-p2').textContent = scoreP2;
+            }
+
             return;
         }
+
     }
 
     // Colisión con Alien 1
@@ -922,11 +1022,18 @@ function checkProyectilCollisions(proyectilIndex) {
         const distanceXZ = Math.sqrt(dx * dx + dz * dz);
 
         if (distanceXZ < 1.0) {
-            dañarAlien(alien);
+            dañarAlien(alien, proyectil); // pasa proyectil
             proyectil.visible = false;
             proyectiles.splice(proyectilIndex, 1);
             return;
         }
+        if (distanceXZ < 1.0) {
+            dañarAlien2(alien2, proyectil); // pasa proyectil
+            proyectil.visible = false;
+            proyectiles.splice(proyectilIndex, 1);
+            return;
+        }
+
     }
 
 
@@ -1007,9 +1114,15 @@ function activarPowerUp(type, currentTime) {
                 opacity: 0.5,
                 wireframe: true
             });
-            const shield = new THREE.Mesh(shieldGeometry, shieldMaterial);
-            shield.userData = { isShield: true };
-            nave.add(shield);
+
+            const shield1 = new THREE.Mesh(shieldGeometry.clone(), shieldMaterial.clone());
+            shield1.userData = { isShield: true };
+            if (nave) nave.add(shield1);
+
+            const shield2 = new THREE.Mesh(shieldGeometry.clone(), shieldMaterial.clone());
+            shield2.userData = { isShield: true };
+            if (nave2) nave2.add(shield2);
+
 
             // Animación del escudo
             gsap.from(shield.scale, {
@@ -1120,24 +1233,41 @@ function desactivarPowerUp(type) {
 // ===== CONTROLES =====
 function onKeyDown(event) {
     keysPressed[event.code] = true;
-    if (event.code === 'Space') dispararProyectil();
+
+    if (event.code === 'Space' && player1) {
+        dispararProyectil(player1, 1);
+    }
+
+    if (event.code === 'KeyR' && player2) {
+        dispararProyectil(player2, 2);
+    }
 }
+
+
 
 function onKeyUp(event) {
     keysPressed[event.code] = false;
 }
 
 function moverNave() {
-    if (!nave) return;
-
     const speed = 0.15;
     const bounds = 9;
 
-    if (keysPressed.ArrowLeft) nave.position.x = Math.max(-bounds, nave.position.x - speed);
-    if (keysPressed.ArrowRight) nave.position.x = Math.min(bounds, nave.position.x + speed);
-    if (keysPressed.ArrowUp) nave.position.z = Math.max(-bounds, nave.position.z - speed);
-    if (keysPressed.ArrowDown) nave.position.z = Math.min(bounds, nave.position.z + speed);
+    if (nave) {
+        if (keysPressed.ArrowLeft) nave.position.x = Math.max(-bounds, nave.position.x - speed);
+        if (keysPressed.ArrowRight) nave.position.x = Math.min(bounds, nave.position.x + speed);
+        if (keysPressed.ArrowUp) nave.position.z = Math.max(-bounds, nave.position.z - speed);
+        if (keysPressed.ArrowDown) nave.position.z = Math.min(bounds, nave.position.z + speed);
+    }
+
+    if (player2) {
+        if (keysPressed.KeyA) player2.position.x = Math.max(-bounds, player2.position.x - speed);
+        if (keysPressed.KeyD) player2.position.x = Math.min(bounds, player2.position.x + speed);
+        if (keysPressed.KeyW) player2.position.z = Math.max(-bounds, player2.position.z - speed);
+        if (keysPressed.KeyS) player2.position.z = Math.min(bounds, player2.position.z + speed);
+    }
 }
+
 
 function onWindowResize() {
     const aspect = window.innerWidth / window.innerHeight;
@@ -1152,32 +1282,25 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-  function enviarDatos() {
-    localStorage.setItem("score", score);
-    localStorage.setItem("nivel", nivel);
-    localStorage.setItem("dificultad", dificultad);
-    
-    window.location.href = "../API/api_graph_facebook.html";
-  }
-
 function showGameOver() {
     const gameOverDiv = document.createElement('div');
     gameOverDiv.className = 'game-over';
     gameOverDiv.innerHTML = `
-                <h2>¡Juego terminado!</h2>
-                <p>Puntuación final: ${score}</p>
-                <button id="restart-btn">Reiniciar Juego</button>
-                <button onclick="enviarDatos()" id="TablaP-btn">Puntuacion</button>
-            `;
+        <h2>¡Juego terminado!</h2>
+        <p> Puntuación Jugador 1: <strong>${scoreP1}</strong></p>
+        <p> Puntuación Jugador 2: <strong>${scoreP2}</strong></p>
+        <p> Total combinado: <strong>${scoreP1 + scoreP2}</strong></p>
+        <button id="restart-btn">Reiniciar Juego</button>
+        <button id="TablaP-btn">Puntuación</button>
+    `;
     document.body.appendChild(gameOverDiv);
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
     document.getElementById('TablaP-btn').addEventListener('click', () => {
         window.location.href = '/API/api_graph_facebook.html';
-
     });
-
 }
+
 
 function restartGame() {
     location.reload();
@@ -1185,7 +1308,7 @@ function restartGame() {
 
 function iniciarJuego() {
 
-
+    gameStartTime = performance.now();
     animate();
 
 }
