@@ -28,11 +28,23 @@ let loader = new THREE.GLTFLoader();
 let proyectiles = [];
 let keysPressed = {};
 const disparoAudio = new Audio('../Audios/disparo.mp3');
+disparoAudio.volume = 0.3; // Puedes ajustar entre 0.0 (silencio) y 1.0 (máximo)
+
+const fondoAudio = new Audio('../Audios/musica.mp3');
+fondoAudio.loop = true;
+fondoAudio.volume = 0.8; // Opcional: ajusta el volumen (0.0 a 1.0)
+
+let animacionID;
+let juegoPausado = false;
 let lastShotTime = 0;
 let canShoot = true;
 const NORMAL_SHOOT_DELAY = 500;
 const RAPID_SHOOT_DELAY = 200;
 let currentShootDelay = NORMAL_SHOOT_DELAY;
+
+let alien1Muerto = false;
+let alien2Muerto = false;
+let nivel3Activado = false;
 
 // Pool de objetos
 let meteoritoPool = [];
@@ -194,6 +206,7 @@ function cargarNave() {
                 document.querySelector('.loading').style.display = 'none';
                 gameStartTime = performance.now();
                 iniciarJuego();
+
             },
             undefined,
             function (error) {
@@ -359,7 +372,6 @@ function dañarAlien(alien) {
         alien.userData.vida--;
         console.log(`¡Alien dañado! Vida restante: ${alien.userData.vida}`);
 
-        // Animación visual (opcional)
         gsap.to(alien.scale, {
             x: 0.12, y: 0.12, z: 0.12,
             yoyo: true,
@@ -372,9 +384,14 @@ function dañarAlien(alien) {
             const index = aliens.indexOf(alien);
             if (index !== -1) aliens.splice(index, 1);
             console.log("Alien destruido por disparo.");
+            alien1Muerto = true;
+            // ✅ Aumentar puntuación
+            score += 150; // o cualquier valor que desees
+            document.getElementById('score').textContent = score;
         }
     }
 }
+
 
 
 function crearAlien2() {
@@ -412,7 +429,6 @@ function dañarAlien2(alien2) {
         alien2.userData.vida--;
         console.log(`¡Alien dañado! Vida restante: ${alien2.userData.vida}`);
 
-        // Animación visual (opcional)
         gsap.to(alien2.scale, {
             x: 0.12, y: 0.12, z: 0.12,
             yoyo: true,
@@ -422,12 +438,17 @@ function dañarAlien2(alien2) {
 
         if (alien2.userData.vida <= 0) {
             scene.remove(alien2);
-            const index = aliens.indexOf(alien2);
-            if (index !== -1) aliens.splice(index, 1);
-            console.log("Alien destruido por disparo.");
+            const index = aliens2.indexOf(alien2);
+            if (index !== -1) aliens2.splice(index, 1);
+            console.log("Alien 2 destruido por disparo.");
+            alien2Muerto = true;
+            // ✅ Aumentar puntuación
+            score += 300; // puedes poner más puntos para este tipo
+            document.getElementById('score').textContent = score;
         }
     }
 }
+
 
 // ===== SISTEMA DE POWER-UPS =====
 function crearPowerUp(x, z) {
@@ -667,7 +688,7 @@ function playSoundEffect(type) {
 
 // ===== BUCLE PRINCIPAL =====
 function updateGame(currentTime) {
-    if (gameOver) return;
+    if (juegoPausado || gameOver) return;
 
     moverNave();
     updateAliensMovimiento();
@@ -684,6 +705,28 @@ function updateGame(currentTime) {
         if (spawnInterval > 800) spawnInterval -= 10;
         if (meteoritoSpeed < 0.1) meteoritoSpeed += 0.0005;
     }
+    // Control de niveles por puntuación
+    let nivel2Activado = false;
+    let nivel3Activado = false;
+
+    if (nivel === 1 && score >= 100 && !nivel2Activado) {
+        nivel = 2;
+        nivel2Activado = true;
+        nivelTitulo.innerText = "Nivel 2 Fácil";
+        iniciarFondoNivel(2);
+        fondoGalaxia(gl2);
+        crearAlien1();
+    }
+
+   if (nivel === 2 && score >= 300 && !nivel3Activado && alien1Muerto) {
+    nivel = 3;
+    nivel3Activado = true;
+    nivelTitulo.innerText = "Nivel 3 Fácil";
+    iniciarFondoNivel(3);
+    fondoPlanetas(gl3);
+    crearAlien2();
+}
+
 
     updateActivePowerUps(currentTime);
     updateMeteoritos();
@@ -863,7 +906,7 @@ function checkProyectilCollisions(proyectilIndex) {
             removeMeteorito(j);
             proyectil.visible = false;
             proyectiles.splice(proyectilIndex, 1);
-            score++;
+            score += 10;
             document.getElementById('score').textContent = score;
             return;
         }
@@ -1127,6 +1170,11 @@ function showGameOver() {
     document.body.appendChild(gameOverDiv);
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
+    document.getElementById('TablaP-btn').addEventListener('click', () => {
+        window.location.href = '/API/api_graph_facebook.html';
+
+    });
+
 }
 
 function restartGame() {
@@ -1134,21 +1182,22 @@ function restartGame() {
 }
 
 function iniciarJuego() {
+
+
     animate();
 
 }
 
 function animate(currentTime = 0) {
-    requestAnimationFrame(animate);
+    if (juegoPausado) return;
+    animacionID = requestAnimationFrame(animate);
     updateGame(currentTime);
-
-
-    console.log("Meteoritos activos:", meteoritos.length);
-
     renderer.render(scene, camera);
 }
 
-window.onload = initGame;
+
+
+
 
 
 
@@ -1182,34 +1231,81 @@ function iniciarFondoNivel(nivel) {
     }
 }
 
-let tiempo = 0;
+
 const nivelTitulo = document.getElementById('nivel-titulo');
 let nivel = 1;
 
-const contador = setInterval(() => {
-    tiempo++;
 
-    // Cada 10 segundos sube un nivel
-    if (tiempo % 10 === 0) {
-        nivel++;
-        if (nivel <= 3) {
-            nivelTitulo.innerText = `Nivel ${nivel} Fácil`;
+
+window.addEventListener('DOMContentLoaded', () => {
+    const btnIniciar = document.getElementById('btnIniciar');
+    btnIniciar.addEventListener('click', async () => {
+        try {
+            await fondoAudio.play();
+        } catch (e) {
+            console.warn("Audio bloqueado:", e);
+            alert("⚠️ El navegador bloqueó la música. Haz clic para continuar.");
         }
+        document.getElementById('pantalla-inicio').style.display = 'none';
+        initGame();
+    });
+});
+document.getElementById('btnPausa').addEventListener('click', () => {
+    juegoPausado = true;
+    document.getElementById('pause-menu').style.display = 'flex';
+    cancelAnimationFrame(animacionID);
+});
+// Permitir que otras scripts usen resumeGame y restartGame
+window.resumeGame = function () {
+    juegoPausado = false;
+    document.getElementById('pause-menu').style.display = 'none';
+    animate(); // Reanuda la animación
+};
 
-        if (nivel === 2) {
-            iniciarFondoNivel(2);
-            fondoGalaxia(gl2);
-            crearAlien1();
-        }
+window.restartGame = function () {
+    location.reload();
+};
 
-        // Detener el contador cuando llega al Nivel 3
-        if (nivel === 3) {
-            iniciarFondoNivel(3);
-            fondoPlanetas(gl3);
-            crearAlien2();
-            clearInterval(contador);
-
-        }
+window.exitToMainMenu = function () {
+    const confirmExit = confirm("¿Deseas salir al menú principal?");
+    if (confirmExit) {
+        window.location.href = "/Menu.html";
     }
-}, 1000); // cada segundo
+};
 
+window.openSettings = function () {
+    juegoPausado = true; // 🔒 fuerza pausa
+    cancelAnimationFrame(animacionID); // detiene render
+    document.getElementById("pause-menu").style.display = "none";
+    document.getElementById("settings-menu").style.display = "flex";
+
+    // Set sliders to current volume levels
+    document.getElementById("volGeneral").value = fondoAudio.volume;
+    document.getElementById("volDisparo").value = disparoAudio.volume;
+    document.getElementById("volMusica").value = fondoAudio.volume;
+};
+
+
+window.closeSettings = function () {
+    document.getElementById("settings-menu").style.display = "none";
+    document.getElementById("pause-menu").style.display = "flex";
+
+};
+
+
+// Eventos para sliders
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("volGeneral").addEventListener("input", (e) => {
+        const vol = parseFloat(e.target.value);
+        fondoAudio.volume = vol;
+        disparoAudio.volume = vol;
+    });
+
+
+
+    document.getElementById("volMusica").addEventListener("input", (e) => {
+        fondoAudio.volume = parseFloat(e.target.value);
+    });
+});
+
+window.initGame = initGame;
