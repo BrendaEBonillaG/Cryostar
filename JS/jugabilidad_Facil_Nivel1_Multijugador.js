@@ -35,8 +35,11 @@ fondoAudio.volume = 0.8; // Opcional: ajusta el volumen (0.0 a 1.0)
 
 let animacionID;
 let juegoPausado = false;
-let lastShotTime = 0;
-let canShoot = true;
+let lastShotTimeP1 = 0;
+let lastShotTimeP2 = 0;
+let canShootP1 = true;
+let canShootP2 = true;
+
 const NORMAL_SHOOT_DELAY = 500;
 const RAPID_SHOOT_DELAY = 200;
 let currentShootDelay = NORMAL_SHOOT_DELAY;
@@ -656,28 +659,38 @@ function updatePowerUps() {
 }
 
 // ===== SISTEMA DE DISPARO =====
-function dispararProyectil(currentTime = performance.now()) {
-    if (!canShoot || currentTime - lastShotTime < currentShootDelay) return;
+function dispararProyectil(disparador, jugador, currentTime = performance.now()) {
+    if (jugador === 1 && (!canShootP1 || currentTime - lastShotTimeP1 < currentShootDelay)) return;
+    if (jugador === 2 && (!canShootP2 || currentTime - lastShotTimeP2 < currentShootDelay)) return;
 
-    lastShotTime = currentTime;
-
-    if (activePowerUps.rapidFire.active) {
-        disparoRapido();
-    } else {
-        disparoNormal();
+    if (jugador === 1) {
+        lastShotTimeP1 = currentTime;
+        canShootP1 = false;
+        setTimeout(() => canShootP1 = true, 100);
     }
 
-    canShoot = false;
-    setTimeout(() => {
-        canShoot = true;
-    }, 100);
+    if (jugador === 2) {
+        lastShotTimeP2 = currentTime;
+        canShootP2 = false;
+        setTimeout(() => canShootP2 = true, 100);
+    }
+
+    if (activePowerUps.rapidFire.active) {
+        disparoRapido(disparador);
+    } else {
+        disparoNormal(disparador);
+    }
+
+    disparoAudio.currentTime = 0;
+    disparoAudio.play();
 }
 
-function disparoNormal() {
+
+function disparoNormal(disparador) {
     const proyectil = getProyectilFromPool();
     if (!proyectil) return;
 
-    proyectil.position.set(nave.position.x, 0.1, nave.position.z - 0.5);
+    proyectil.position.set(disparador.position.x, 0.1, disparador.position.z - 0.5);
     proyectil.userData = {
         speed: CONFIG.PROYECTIL_SPEED,
         direction: new THREE.Vector3(0, 0, -1),
@@ -686,19 +699,19 @@ function disparoNormal() {
     proyectil.visible = true;
     proyectiles.push(proyectil);
 
-    disparoAudio.currentTime = 0; // Reinicia el audio para que se pueda reproducir rápidamente en sucesión
+    disparoAudio.currentTime = 0;
     disparoAudio.play();
 }
 
-function disparoRapido() {
+function disparoRapido(disparador) {
     for (let i = -1; i <= 1; i++) {
         const proyectil = getProyectilFromPool();
         if (!proyectil) continue;
 
         proyectil.position.set(
-            nave.position.x + (i * 0.3),
+            disparador.position.x + (i * 0.3),
             0.1,
-            nave.position.z - 0.5
+            disparador.position.z - 0.5
         );
         proyectil.userData = {
             speed: CONFIG.PROYECTIL_SPEED * 1.2,
@@ -709,9 +722,10 @@ function disparoRapido() {
         proyectiles.push(proyectil);
     }
 
-    disparoAudio.currentTime = 0; // Reinicia el audio para que se pueda reproducir rápidamente en sucesión
+    disparoAudio.currentTime = 0;
     disparoAudio.play();
 }
+
 
 function getProyectilFromPool() {
     return proyectilPool.find(p => !p.visible) || crearNuevoProyectil();
@@ -1167,8 +1181,17 @@ function desactivarPowerUp(type) {
 // ===== CONTROLES =====
 function onKeyDown(event) {
     keysPressed[event.code] = true;
-    if (event.code === 'Space') dispararProyectil();
+
+    if (event.code === 'Space' && player1) {
+        dispararProyectil(player1, 1);
+    }
+
+    if (event.code === 'KeyR' && player2) {
+        dispararProyectil(player2, 2);
+    }
 }
+
+
 
 function onKeyUp(event) {
     keysPressed[event.code] = false;
