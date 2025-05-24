@@ -51,6 +51,7 @@ let currentShootDelay = NORMAL_SHOOT_DELAY;
 
 let alien1Muerto = false;
 let alien2Muerto = false;
+let nivel2Activado = false;
 let nivel3Activado = false;
 
 //multijugador
@@ -785,10 +786,10 @@ function updateGame(currentTime) {
         if (meteoritoSpeed < 0.1) meteoritoSpeed += 0.0005;
     }
     // Control de niveles por puntuación
-    let nivel2Activado = false;
-    let nivel3Activado = false;
 
-    if (nivel === 1 && score >= 100 && !nivel2Activado) {
+    const totalScore = scoreP1 + scoreP2;
+
+    if (nivel === 1 && totalScore >= 150 && !nivel2Activado) {
         nivel = 2;
         nivel2Activado = true;
         nivelTitulo.innerText = "Nivel 2 Fácil";
@@ -797,7 +798,7 @@ function updateGame(currentTime) {
         crearAlien1();
     }
 
-    if (nivel === 2 && score >= 300 && !nivel3Activado && alien1Muerto) {
+    if (nivel === 2 && totalScore >= 500 && !nivel3Activado && alien1Muerto) {
         nivel = 3;
         nivel3Activado = true;
         nivelTitulo.innerText = "Nivel 3 Fácil";
@@ -805,6 +806,7 @@ function updateGame(currentTime) {
         fondoPlanetas(gl3);
         crearAlien2();
     }
+
 
 
     updateActivePowerUps(currentTime);
@@ -982,22 +984,22 @@ function checkProyectilCollisions(proyectilIndex) {
         const meteorito = meteoritos[j];
         const distance = proyectil.position.distanceTo(meteorito.position);
 
-       if (distance < 0.8) {
-    createExplosion(meteorito.position.clone(), 0xff9900, 1.2);
-    removeMeteorito(j);
-    proyectil.visible = false;
-    proyectiles.splice(proyectilIndex, 1);
+        if (distance < 0.8) {
+            createExplosion(meteorito.position.clone(), 0xff9900, 1.2);
+            removeMeteorito(j);
+            proyectil.visible = false;
+            proyectiles.splice(proyectilIndex, 1);
 
-    if (proyectil.userData.disparador === 1) {
-        scoreP1 += 10;
-        document.getElementById('score-p1').textContent = scoreP1;
-    } else if (proyectil.userData.disparador === 2) {
-        scoreP2 += 10;
-        document.getElementById('score-p2').textContent = scoreP2;
-    }
+            if (proyectil.userData.disparador === 1) {
+                scoreP1 += 10;
+                document.getElementById('score-p1').textContent = scoreP1;
+            } else if (proyectil.userData.disparador === 2) {
+                scoreP2 += 10;
+                document.getElementById('score-p2').textContent = scoreP2;
+            }
 
-    return;
-}
+            return;
+        }
 
     }
 
@@ -1267,20 +1269,21 @@ function showGameOver() {
     const gameOverDiv = document.createElement('div');
     gameOverDiv.className = 'game-over';
     gameOverDiv.innerHTML = `
-                <h2>¡Juego terminado!</h2>
-                <p>Puntuación final: ${score}</p>
-                <button id="restart-btn">Reiniciar Juego</button>
-                <button id="TablaP-btn">Puntuacion</button>
-            `;
+        <h2>¡Juego terminado!</h2>
+        <p> Puntuación Jugador 1: <strong>${scoreP1}</strong></p>
+        <p> Puntuación Jugador 2: <strong>${scoreP2}</strong></p>
+        <p> Total combinado: <strong>${scoreP1 + scoreP2}</strong></p>
+        <button id="restart-btn">Reiniciar Juego</button>
+        <button id="TablaP-btn">Puntuación</button>
+    `;
     document.body.appendChild(gameOverDiv);
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
     document.getElementById('TablaP-btn').addEventListener('click', () => {
         window.location.href = '/API/api_graph_facebook.html';
-
     });
-
 }
+
 
 function restartGame() {
     location.reload();
