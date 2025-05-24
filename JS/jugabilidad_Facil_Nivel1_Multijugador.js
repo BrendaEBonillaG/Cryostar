@@ -44,7 +44,14 @@ let currentShootDelay = NORMAL_SHOOT_DELAY;
 let alien1Muerto = false;
 let alien2Muerto = false;
 let nivel3Activado = false;
+
+//multijugador
 let player1;
+let player2;
+let nave2;
+
+let nave1Cargada = false;
+let nave2Cargada = false;
 
 // Pool de objetos
 let meteoritoPool = [];
@@ -97,7 +104,7 @@ function initGame() {
 
     createPools();
     cargarNave();
-
+    cargarNave2();
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
@@ -189,10 +196,10 @@ function cargarNave() {
             function (gltf) {
                 nave = gltf.scene;
                 player1 = nave; // Asignar la nave visible como player1
-                
+
                 nave.rotation.y = 84.85;
                 nave.rotation.x = 50;
-                nave.position.set(0, 0, 0);
+                nave.position.set(2, 0, 0);
                 nave.scale.set(0.2, 0.2, 0.2);
 
                 nave.traverse(child => {
@@ -205,8 +212,9 @@ function cargarNave() {
 
                 scene.add(nave);
                 document.querySelector('.loading').style.display = 'none';
-                gameStartTime = performance.now();
-                iniciarJuego();
+                nave1Cargada = true;
+                if (nave1Cargada && nave2Cargada) iniciarJuego();
+
 
             },
             undefined,
@@ -222,6 +230,46 @@ function cargarNave() {
 }
 
 
+function cargarNave2() {
+    // Intenta cargar modelo 3D, si falla crea una nave básica
+    try {
+        loader.load(
+            '../models/player2.glb',
+            function (gltf) {
+                nave2 = gltf.scene;
+                player2 = nave2; // Asignar la nave visible como player1
+
+                nave2.rotation.y = 84.85;
+                nave2.rotation.x = 50;
+                nave2.position.set(-2, 0, 0);
+                nave2.scale.set(0.2, 0.2, 0.2);
+
+                nave2.traverse(child => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = false;
+                        child.material.flatShading = true;
+                    }
+                });
+
+                scene.add(nave2);
+                document.querySelector('.loading').style.display = 'none';
+                nave2Cargada = true;
+                if (nave1Cargada && nave2Cargada) iniciarJuego();
+
+
+            },
+            undefined,
+            function (error) {
+                console.error('Error al cargar la nave:', error);
+                crearNave2Basica();
+            }
+        );
+    } catch (e) {
+        console.error('Error al cargar modelo 3D:', e);
+
+    }
+}
 // ===== SISTEMA DE METEORITOS =====
 function spawnMeteorito(currentTime) {
     if (currentTime - gameStartTime > CONFIG.MAX_SPAWN_TIME) return;
@@ -1127,16 +1175,24 @@ function onKeyUp(event) {
 }
 
 function moverNave() {
-    if (!nave) return;
-
     const speed = 0.15;
     const bounds = 9;
 
-    if (keysPressed.ArrowLeft) nave.position.x = Math.max(-bounds, nave.position.x - speed);
-    if (keysPressed.ArrowRight) nave.position.x = Math.min(bounds, nave.position.x + speed);
-    if (keysPressed.ArrowUp) nave.position.z = Math.max(-bounds, nave.position.z - speed);
-    if (keysPressed.ArrowDown) nave.position.z = Math.min(bounds, nave.position.z + speed);
+    if (nave) {
+        if (keysPressed.ArrowLeft) nave.position.x = Math.max(-bounds, nave.position.x - speed);
+        if (keysPressed.ArrowRight) nave.position.x = Math.min(bounds, nave.position.x + speed);
+        if (keysPressed.ArrowUp) nave.position.z = Math.max(-bounds, nave.position.z - speed);
+        if (keysPressed.ArrowDown) nave.position.z = Math.min(bounds, nave.position.z + speed);
+    }
+
+    if (player2) {
+        if (keysPressed.KeyA) player2.position.x = Math.max(-bounds, player2.position.x - speed);
+        if (keysPressed.KeyD) player2.position.x = Math.min(bounds, player2.position.x + speed);
+        if (keysPressed.KeyW) player2.position.z = Math.max(-bounds, player2.position.z - speed);
+        if (keysPressed.KeyS) player2.position.z = Math.min(bounds, player2.position.z + speed);
+    }
 }
+
 
 function onWindowResize() {
     const aspect = window.innerWidth / window.innerHeight;
@@ -1176,7 +1232,7 @@ function restartGame() {
 
 function iniciarJuego() {
 
-
+    gameStartTime = performance.now();
     animate();
 
 }
