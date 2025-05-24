@@ -1114,9 +1114,15 @@ function activarPowerUp(type, currentTime) {
                 opacity: 0.5,
                 wireframe: true
             });
-            const shield = new THREE.Mesh(shieldGeometry, shieldMaterial);
-            shield.userData = { isShield: true };
-            nave.add(shield);
+
+            const shield1 = new THREE.Mesh(shieldGeometry.clone(), shieldMaterial.clone());
+            shield1.userData = { isShield: true };
+            if (nave) nave.add(shield1);
+
+            const shield2 = new THREE.Mesh(shieldGeometry.clone(), shieldMaterial.clone());
+            shield2.userData = { isShield: true };
+            if (nave2) nave2.add(shield2);
+
 
             // Animación del escudo
             gsap.from(shield.scale, {
