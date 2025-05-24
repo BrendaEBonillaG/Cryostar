@@ -1,10 +1,12 @@
     const score = localStorage.getItem("score");
     const nivel = localStorage.getItem("nivel");
     const dificultad = localStorage.getItem("dificultad");
+    const nombre = localStorage.getItem("inputNombre");
 
     document.getElementById("score").textContent = `Puntaje: ${score}`;
     document.getElementById("nivel").textContent = `Nivel: ${nivel}`;
     document.getElementById("dificultad").textContent = `Dificultad: ${dificultad}`;
+    // document.getElementById("nombre").textContent = `Nombre: ${nombre}`;
 
     function guardarTodo() {
       const nombre = document.getElementById("inputNombre").value;
@@ -16,6 +18,8 @@
         nivel: nivel,
         dificultad: dificultad
       };
+
+      localStorage.setItem("inputNombre", nombre);
 
       localStorage.setItem("datosFinales", JSON.stringify(datosFinales));
 
@@ -38,11 +42,11 @@ function publicarMensaje() {
     const mensaje = `Hola soy ${nombre} y mi puntaje en Cryostar es de: ${score} puntos y llegué a nivel ${nivel} en ${dificultad}`; // Mensaje predeterminado
 
     FB.api(
-        "/122103685574006913/feed", // Reemplaza con tu ID de página
+        "/637366269462788/feed", // Reemplaza con tu ID de página
         "POST",
         {
             message: mensaje,
-            access_token: "EAAQsSGsuJCwBO9yKRWUmW310ThrCNbjXiLULzaYvtBE2ZBo5z7NksqYp9TVaJJlAKZBM0uxeuVhqJXByq3e4lbZC9EO8zVNzWIZA2TlXWbP0ZAhKA2JxGEfZC8ZAbEY6afnOs6jQ8ZBjARiGNrAs9GSI5YdUwGWwN5PjtfOpHJlZCW2ZBtx69MZATJRBYjIkVKypKTVJsGDWCdnJxvFLUThcRMPEZA9NqQZDZD"
+            access_token: "EAAOC7l7vPd8BOZBkQ6UtVHryZA8Be74vdZABbHvrnY9Jt3eAIF9hy0iZBAx0WV7rBiEiRrf2w46whJX2xyh3rszmuoBgGvcCYjGyv3q2u1J5JTDFt6vQli9aK8N7HsnUMB3R5ThD4V7gOkof7c3yWB4ZCuUybeq7eKeoBxozwdP3AqYNwejjaeQVxbiIWdsGFiyzKPNQiZCtsjZA9hubjZCBqMI9ZB3tL"
         },
         function(response) {
             if (response && !response.error) {

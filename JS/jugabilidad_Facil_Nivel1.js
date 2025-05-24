@@ -1111,7 +1111,6 @@ function onWindowResize() {
     localStorage.setItem("score", score);
     localStorage.setItem("nivel", nivel);
     localStorage.setItem("dificultad", dificultad);
-
     
     window.location.href = "../API/api_graph_facebook.html";
   }
