@@ -19,6 +19,11 @@ const CONFIG = {
 let scene, camera, renderer;
 let nave, meteoritos = [], aliens = [], aliens2 = [], powerUps = [];
 let score = 0, lives = 3, gameOver = false;
+let scoreP1 = 0;
+let scoreP2 = 0;
+let livesP1 = 3;
+let livesP2 = 3;
+
 let meteoritoSpeed = CONFIG.METEORITO_SPEED;
 let spawnInterval = CONFIG.SPAWN_INTERVAL;
 let lastSpawnTime = 0;
@@ -435,11 +440,14 @@ function dañarAlien(alien) {
             scene.remove(alien);
             const index = aliens.indexOf(alien);
             if (index !== -1) aliens.splice(index, 1);
-            console.log("Alien destruido por disparo.");
-            alien1Muerto = true;
-            // ✅ Aumentar puntuación
-            score += 150; // o cualquier valor que desees
-            document.getElementById('score').textContent = score;
+
+            if (proyectil.userData.disparador === 1) {
+                scoreP1 += 150;
+                document.getElementById('score-p1').textContent = scoreP1;
+            } else if (proyectil.userData.disparador === 2) {
+                scoreP2 += 150;
+                document.getElementById('score-p2').textContent = scoreP2;
+            }
         }
     }
 }
@@ -492,11 +500,14 @@ function dañarAlien2(alien2) {
             scene.remove(alien2);
             const index = aliens2.indexOf(alien2);
             if (index !== -1) aliens2.splice(index, 1);
-            console.log("Alien 2 destruido por disparo.");
-            alien2Muerto = true;
-            // ✅ Aumentar puntuación
-            score += 300; // puedes poner más puntos para este tipo
-            document.getElementById('score').textContent = score;
+
+            if (proyectil.userData.disparador === 1) {
+                scoreP1 += 300;
+                document.getElementById('score-p1').textContent = scoreP1;
+            } else if (proyectil.userData.disparador === 2) {
+                scoreP2 += 300;
+                document.getElementById('score-p2').textContent = scoreP2;
+            }
         }
     }
 }
@@ -676,17 +687,18 @@ function dispararProyectil(disparador, jugador, currentTime = performance.now())
     }
 
     if (activePowerUps.rapidFire.active) {
-        disparoRapido(disparador);
+        disparoRapido(disparador, jugador);
     } else {
-        disparoNormal(disparador);
+        disparoNormal(disparador, jugador);
     }
+
 
     disparoAudio.currentTime = 0;
     disparoAudio.play();
 }
 
 
-function disparoNormal(disparador) {
+function disparoNormal(disparador, jugador) {
     const proyectil = getProyectilFromPool();
     if (!proyectil) return;
 
@@ -694,16 +706,17 @@ function disparoNormal(disparador) {
     proyectil.userData = {
         speed: CONFIG.PROYECTIL_SPEED,
         direction: new THREE.Vector3(0, 0, -1),
-        active: true
+        active: true,
+        disparador: jugador
     };
+
     proyectil.visible = true;
     proyectiles.push(proyectil);
-
     disparoAudio.currentTime = 0;
     disparoAudio.play();
 }
 
-function disparoRapido(disparador) {
+function disparoRapido(disparador, jugador) {
     for (let i = -1; i <= 1; i++) {
         const proyectil = getProyectilFromPool();
         if (!proyectil) continue;
@@ -716,8 +729,10 @@ function disparoRapido(disparador) {
         proyectil.userData = {
             speed: CONFIG.PROYECTIL_SPEED * 1.2,
             direction: new THREE.Vector3(i * 0.1, 0, -1).normalize(),
-            active: true
+            active: true,
+            disparador: jugador
         };
+
         proyectil.visible = true;
         proyectiles.push(proyectil);
     }
@@ -725,6 +740,7 @@ function disparoRapido(disparador) {
     disparoAudio.currentTime = 0;
     disparoAudio.play();
 }
+
 
 
 function getProyectilFromPool() {
@@ -809,13 +825,16 @@ function updateMeteoritos() {
             meteorito.rotation.z += 0.01;
         }
 
-        const distanceToNave = Math.sqrt(
-            Math.pow(meteorito.position.x - nave.position.x, 2) +
-            Math.pow(meteorito.position.z - nave.position.z, 2)
-        );
+        const distToP1 = nave ? meteorito.position.distanceTo(nave.position) : Infinity;
+        const distToP2 = nave2 ? meteorito.position.distanceTo(nave2.position) : Infinity;
 
-        if (distanceToNave < 1.0) {
-            handleMeteoritoCollision(i);
+        if (distToP1 < 1.0) {
+            handleMeteoritoCollision(i, 1);
+            continue;
+        }
+
+        if (distToP2 < 1.0) {
+            handleMeteoritoCollision(i, 2);
             continue;
         }
 
@@ -849,28 +868,27 @@ function updateAliensMovimiento() {
 }
 
 
-function handleMeteoritoCollision(index) {
+function handleMeteoritoCollision(index, jugador) {
+
     createExplosion(meteoritos[index].position.clone(), 0xff0000, 1.5);
     removeMeteorito(index);
 
     if (!activePowerUps.shield.active) {
-        lives--;
-        document.getElementById('lives').textContent = lives;
-
-        // Efecto de daño a la nave
-        gsap.to(nave.scale, {
-            x: .3, y: .3, z: .3,
-            duration: 0.1,
-            yoyo: true,
-            repeat: 3
-        });
-
-        if (lives <= 0) {
-            gameOver = true;
-            showGameOver();
+        if (jugador === 1) {
+            livesP1--;
+            document.getElementById('lives-p1').textContent = livesP1;
+            gsap.to(nave.scale, { x: .3, y: .3, z: .3, duration: 0.1, yoyo: true, repeat: 3 });
+            if (livesP1 <= 0) gameOver = true;
+        } else if (jugador === 2) {
+            livesP2--;
+            document.getElementById('lives-p2').textContent = livesP2;
+            gsap.to(nave2.scale, { x: .3, y: .3, z: .3, duration: 0.1, yoyo: true, repeat: 3 });
+            if (livesP2 <= 0) gameOver = true;
         }
-        // if
+
+        if (gameOver) showGameOver();
     }
+
 }
 
 function createExplosion(position, color = 0xff6600, size = 1.0) {
@@ -964,15 +982,23 @@ function checkProyectilCollisions(proyectilIndex) {
         const meteorito = meteoritos[j];
         const distance = proyectil.position.distanceTo(meteorito.position);
 
-        if (distance < 0.8) {
-            createExplosion(meteorito.position.clone(), 0xff9900, 1.2);
-            removeMeteorito(j);
-            proyectil.visible = false;
-            proyectiles.splice(proyectilIndex, 1);
-            score += 10;
-            document.getElementById('score').textContent = score;
-            return;
-        }
+       if (distance < 0.8) {
+    createExplosion(meteorito.position.clone(), 0xff9900, 1.2);
+    removeMeteorito(j);
+    proyectil.visible = false;
+    proyectiles.splice(proyectilIndex, 1);
+
+    if (proyectil.userData.disparador === 1) {
+        scoreP1 += 10;
+        document.getElementById('score-p1').textContent = scoreP1;
+    } else if (proyectil.userData.disparador === 2) {
+        scoreP2 += 10;
+        document.getElementById('score-p2').textContent = scoreP2;
+    }
+
+    return;
+}
+
     }
 
     // Colisión con Alien 1
@@ -983,11 +1009,18 @@ function checkProyectilCollisions(proyectilIndex) {
         const distanceXZ = Math.sqrt(dx * dx + dz * dz);
 
         if (distanceXZ < 1.0) {
-            dañarAlien(alien);
+            dañarAlien(alien, proyectil); // pasa proyectil
             proyectil.visible = false;
             proyectiles.splice(proyectilIndex, 1);
             return;
         }
+        if (distanceXZ < 1.0) {
+            dañarAlien2(alien2, proyectil); // pasa proyectil
+            proyectil.visible = false;
+            proyectiles.splice(proyectilIndex, 1);
+            return;
+        }
+
     }
 
 
