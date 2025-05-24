@@ -24,6 +24,24 @@
       localStorage.setItem("datosFinales", JSON.stringify(datosFinales));
 
       console.log("Datos guardados:", datosFinales);
+
+fetch("http://localhost/Conexion.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(datosFinales)
+  })
+  .then(response => response.text())
+  .then(data => {
+    console.log("Respuesta del servidor:", data);
+    alert("Puntaje enviado correctamente");
+  })
+  .catch(error => {
+    console.error("Error al enviar los datos:", error);
+    alert("Error al enviar los datos");
+  });
+
     }
 
 
@@ -62,3 +80,4 @@ function publicarMensaje() {
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('enviar').addEventListener('click', publicarMensaje);
 });
+
