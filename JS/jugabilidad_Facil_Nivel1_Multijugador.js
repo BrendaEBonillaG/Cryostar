@@ -1281,14 +1281,7 @@ function onWindowResize() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
- function enviarDatos() {
-    localStorage.setItem("score", score);
-    localStorage.setItem("nivel", nivel);
-    localStorage.setItem("dificultad", dificultad);
-    
-    window.location.href = "../API/api_graph_facebook.html";
-  }
-window.enviarDatos = enviarDatos;
+
 function showGameOver() {
     const gameOverDiv = document.createElement('div');
     gameOverDiv.className = 'game-over';
@@ -1298,12 +1291,12 @@ function showGameOver() {
         <p> Puntuación Jugador 2: <strong>${scoreP2}</strong></p>
         <p> Total combinado: <strong>${scoreP1 + scoreP2}</strong></p>
         <button id="restart-btn">Reiniciar Juego</button>
-        <button id="TablaP-btn">Puntuación</button>
+     
     `;
     document.body.appendChild(gameOverDiv);
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
-    document.getElementById('TablaP-btn').addEventListener('click', enviarDatos); // ✅ ESTA ES LA LÍNEA QUE TE FALTABA
+   
 }
 
 
