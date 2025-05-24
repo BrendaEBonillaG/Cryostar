@@ -1157,7 +1157,7 @@ function onWindowResize() {
     
     window.location.href = "../API/api_graph_facebook.html";
   }
-
+window.enviarDatos = enviarDatos;
 function showGameOver() {
     const gameOverDiv = document.createElement('div');
     gameOverDiv.className = 'game-over';
@@ -1170,10 +1170,7 @@ function showGameOver() {
     document.body.appendChild(gameOverDiv);
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
-    document.getElementById('TablaP-btn').addEventListener('click', () => {
-        window.location.href = '/API/api_graph_facebook.html';
-
-    });
+   
 
 }
 

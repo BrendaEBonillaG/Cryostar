@@ -412,7 +412,7 @@ function crearAlien1() {
             alien.scale.set(0.1, 0.1, 0.1);
 
             // Establecer vida inicial
-            alien.userData.vida = 3;
+            alien.userData.vida = 10;
 
             scene.add(alien);
             aliens.push(alien);
@@ -471,7 +471,7 @@ function crearAlien2() {
             alien2.position.set(0, 5, -8);
             alien2.scale.set(0.05, 0.05, 0.05);
             // Establecer vida inicial
-            alien2.userData.vida = 5;
+            alien2.userData.vida = 15;
             console.log("Alien 2 creado y añadido con 5 puntos de vida.");
             scene.add(alien2);
             aliens2.push(alien2);
@@ -1281,7 +1281,14 @@ function onWindowResize() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
-
+ function enviarDatos() {
+    localStorage.setItem("score", score);
+    localStorage.setItem("nivel", nivel);
+    localStorage.setItem("dificultad", dificultad);
+    
+    window.location.href = "../API/api_graph_facebook.html";
+  }
+window.enviarDatos = enviarDatos;
 function showGameOver() {
     const gameOverDiv = document.createElement('div');
     gameOverDiv.className = 'game-over';
@@ -1296,10 +1303,9 @@ function showGameOver() {
     document.body.appendChild(gameOverDiv);
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
-    document.getElementById('TablaP-btn').addEventListener('click', () => {
-        window.location.href = '/API/api_graph_facebook.html';
-    });
+    document.getElementById('TablaP-btn').addEventListener('click', enviarDatos); // ✅ ESTA ES LA LÍNEA QUE TE FALTABA
 }
+
 
 
 function restartGame() {
