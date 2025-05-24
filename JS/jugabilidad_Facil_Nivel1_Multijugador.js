@@ -642,7 +642,17 @@ function updatePowerUps() {
         );
 
         // Colisión con la nave
-        if (distance < 1.2) {
+        const distanciaNave1 = nave ? Math.sqrt(
+            Math.pow(powerUp.position.x - nave.position.x, 2) +
+            Math.pow(powerUp.position.z - nave.position.z, 2)
+        ) : Infinity;
+
+        const distanciaNave2 = nave2 ? Math.sqrt(
+            Math.pow(powerUp.position.x - nave2.position.x, 2) +
+            Math.pow(powerUp.position.z - nave2.position.z, 2)
+        ) : Infinity;
+
+        if (distanciaNave1 < 1.2 || distanciaNave2 < 1.2) {
             activarPowerUp(powerUp.userData.type, performance.now());
 
             // Efecto de recogida
@@ -659,6 +669,7 @@ function updatePowerUps() {
 
             powerUps.splice(i, 1);
         }
+
         // Eliminar si sale de pantalla
         else if (powerUp.position.z < -15) {
             powerUp.visible = false;
